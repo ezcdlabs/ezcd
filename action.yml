@@ -10,6 +10,7 @@ runs:
   using: 'composite'
   steps:
     - name: Download ezcd CLI
+      shell: bash
       run: |
         if [ "${{ inputs.version }}" = "latest" ]; then
           version=$(curl -s https://api.github.com/repos/ezcdlabs/ezcd/releases/latest | jq -r .tag_name)
@@ -19,4 +20,5 @@ runs:
         curl -L -o ezcdcli.tar.gz https://github.com/ezcdlabs/ezcd/releases/download/$version/ezcdcli_${{ runner.os }}_${{ runner.arch }}.tar.gz
         tar -xzf ezcdcli.tar.gz -C /usr/local/bin
     - name: Verify installation
+      shell: bash
       run: ezcd-cli --version
