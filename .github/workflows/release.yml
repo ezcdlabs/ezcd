@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.16'
+
+    - name: Log in to GitHub Container Registry
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+    - name: Install dependencies
+      run: make install
+
+    - name: Run tests
+      run: make test
+
+    - name: Run GoReleaser
+      uses: goreleaser/goreleaser-action@v2
+      with:
+        version: latest
+        args: release --rm-dist
+
+    - name: Setup EZCD CLI using github action
+      uses: ezcdlabs/ezcd@v1
+      with:
+        version: ${{ github.ref_name }}
+
+    - name: Smoke test CLI
+      run: ezcd-cli --version
+
+    - name: Smoke test API
+      run: docker run --rm ghcr.io/ezcdlabs/ezcd:latest --version

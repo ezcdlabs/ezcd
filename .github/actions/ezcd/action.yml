@@ -1,0 +1,22 @@
+name: "Setup EZCD CLI"
+description: "Download and set up the EZCD CLI"
+author: "EZCD Labs"
+inputs:
+  version:
+    description: 'The version of the ezcd CLI to install'
+    required: true
+    default: 'latest'
+runs:
+  using: 'composite'
+  steps:
+    - name: Download ezcd CLI
+      run: |
+        if [ "${{ inputs.version }}" = "latest" ]; then
+          version=$(curl -s https://api.github.com/repos/ezcdlabs/ezcd/releases/latest | jq -r .tag_name)
+        else
+          version=${{ inputs.version }}
+        fi
+        curl -L -o ezcdcli.tar.gz https://github.com/ezcdlabs/ezcd/releases/download/$version/ezcdcli_${{ runner.os }}_${{ runner.arch }}.tar.gz
+        tar -xzf ezcdcli.tar.gz -C /usr/local/bin
+    - name: Verify installation
+      run: ezcd-cli --version

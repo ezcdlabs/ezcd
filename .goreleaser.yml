@@ -1,0 +1,29 @@
+builds:
+  - id: cli
+    main: ./cmd/cli/main.go
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags: -s -w
+    binary: ezcd-cli
+
+dockers:
+  - image: ghcr.io/ezcdlabs/ezcd
+    dockerfile: Dockerfile
+    goos: linux
+    goarch: amd64
+    ids:
+      - api
+    registries:
+      - ghcr.io
+
+archives:
+  - id: cli
+    builds:
+      - cli
+    format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"

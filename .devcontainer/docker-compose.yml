@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  devcontainer:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      # PGHOST and PGUSER are the variables that the postgres client uses, so this makes 'psql' work out of the box
+      PGHOST: db
+      PGUSER: postgres
+      PGPASSWORD: password
+    volumes:
+      - ..:/workspace:cached
+    command: /bin/sh -c "while sleep 1000; do :; done"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:

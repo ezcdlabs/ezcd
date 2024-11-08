@@ -1,0 +1,9 @@
+{
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "devcontainer",
+    "workspaceFolder": "/workspace",
+    "forwardPorts": [
+        5432
+    ],
+    "postCreateCommand": "./.devcontainer/setup.sh"
+}
