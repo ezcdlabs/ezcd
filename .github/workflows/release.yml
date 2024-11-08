@@ -34,7 +34,7 @@ jobs:
         args: release --rm-dist
 
     - name: Setup EZCD CLI using github action
-      uses: ezcdlabs/ezcd@v1
+      uses: ezcdlabs/ezcd@${{ github.ref_name }}
       with:
         version: ${{ github.ref_name }}
 
