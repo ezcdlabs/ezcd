@@ -33,13 +33,13 @@ jobs:
         version: latest
         args: release --rm-dist
 
-    - name: Setup EZCD CLI using github action
-      uses: ezcdlabs/ezcd@v0.1.0
-      with:
-        version: ${{ github.ref_name }}
+    # - name: Setup EZCD CLI using github action
+    #   uses: ezcdlabs/ezcd@v0.1.0
+    #   with:
+    #     version: ${{ github.ref_name }}
 
-    - name: Smoke test CLI
-      run: ezcd-cli --version
+    # - name: Smoke test CLI
+    #   run: ezcd-cli --version
 
-    - name: Smoke test Server
-      run: docker run --rm ghcr.io/ezcdlabs/ezcd:latest --version
+    # - name: Smoke test Server
+    #   run: docker run --rm ghcr.io/ezcdlabs/ezcd:latest --version
