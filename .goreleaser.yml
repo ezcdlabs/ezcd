@@ -12,12 +12,12 @@ builds:
     binary: ezcd-cli
 
 dockers:
-  - image: ghcr.io/ezcdlabs/ezcd
+  - image: ghcr.io/ezcdlabs/ezcd-server
     dockerfile: Dockerfile
     goos: linux
     goarch: amd64
     ids:
-      - api
+      - server
     registries:
       - ghcr.io
 

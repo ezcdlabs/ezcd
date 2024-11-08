@@ -18,16 +18,16 @@ test:
 build-cli:
 	go build -o $(DIST_DIR)/$(BINARY_CLI) ./cmd/cli
 
-# Build API
-build-api:
-	go build -o $(DIST_DIR)/$(BINARY_SERVER) ./cmd/api
+# Build SERVER
+build-server:
+	go build -o $(DIST_DIR)/$(BINARY_SERVER) ./cmd/server
 
-# Build both CLI and API
-build: build-cli build-api
+# Build both CLI and SERVER
+build: build-cli build-server
 
 # Clean up
 clean:
 	rm -rf $(DIST_DIR)
 
 # PHONY targets
-.PHONY: all install test build-cli build-api build clean
+.PHONY: all install test build-cli build-server build clean

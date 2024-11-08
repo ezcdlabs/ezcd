@@ -23,3 +23,7 @@ jobs:
 
     - name: Run tests
       run: make test
+
+# TODO:
+# - docker build
+# - end to end tests

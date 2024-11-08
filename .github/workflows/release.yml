@@ -41,5 +41,5 @@ jobs:
     - name: Smoke test CLI
       run: ezcd-cli --version
 
-    - name: Smoke test API
+    - name: Smoke test Server
       run: docker run --rm ghcr.io/ezcdlabs/ezcd:latest --version
