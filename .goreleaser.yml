@@ -12,6 +12,15 @@ builds:
       - arm64
     ldflags: -s -w
     binary: ezcd-cli
+  
+  - id: server
+    main: ./cmd/server/main.go
+    goos:
+      - linux
+    goarch:
+      - amd64
+    ldflags: -s -w
+    binary: ezcd-server
 
 dockers:
   - image_templates:
