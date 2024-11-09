@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build and release nightly:
+  build_and_release_nightly:
     runs-on: ubuntu-latest
 
     steps:
