@@ -1,10 +1,7 @@
 version: 2
 
-nightly:
-  version_template: "{{ incpatch .Version }}-dev"
-  tag_name: dev
-  publish_release: true
-  keep_single_release: true
+snapshot:
+  name_template: "snapshot"
 
 builds:
   - id: cli
@@ -32,7 +29,7 @@ builds:
 
 dockers:
   - image_templates:
-    - 'ghcr.io/ezcdlabs/ezcd-server:v{{ .Version }}'
+    - 'ghcr.io/ezcdlabs/ezcd-server:{{ if .IsSnapshot }}snapshot{{ else }}v{{ .Version }}{{ end }}'
     dockerfile: Dockerfile
     goos: linux
     goarch: amd64

@@ -31,8 +31,12 @@ jobs:
       uses: goreleaser/goreleaser-action@v6
       with:
         version: ~> v2
-        args: release --clean --nightly
-        # we could specific a file with:
-        # args: release --clean --nightly -f .goreleaser-nightly.yaml
+        args: release --clean --snapshot 
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Smoke test CLI
+      run: ./dist/cli_linux_amd64_v1/ezcd-cli --version
+
+    - name: Smoke test Server
+      run: docker run ghcr.io/ezcdlabs/ezcd-server:snapshot --version
