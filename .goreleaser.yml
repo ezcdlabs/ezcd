@@ -26,7 +26,9 @@ builds:
 
 dockers:
   - image_templates:
-    - 'ghcr.io/ezcdlabs/ezcd-server:{{ .Tag }}'
+    - 'ghcr.io/ezcdlabs/ezcd-server:{{ .Major }}-{{ .Minor }}-{{ .Patch }}'
+    - 'ghcr.io/ezcdlabs/ezcd-server:{{ .Major }}'
+    - 'ghcr.io/ezcdlabs/ezcd-server:latest'
     dockerfile: Dockerfile
     goos: linux
     goarch: amd64
@@ -37,4 +39,4 @@ archives:
     builds:
       - cli
     format: tar.gz
-    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"

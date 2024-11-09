@@ -39,13 +39,21 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    # - name: Setup EZCD CLI using github action
-    #   uses: ezcdlabs/ezcd@v0.1.0
-    #   with:
-    #     version: ${{ github.ref_name }}
+  smoke-test-cli:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup EZCD CLI using github action
+        uses: ezcdlabs/ezcd@main
+        with:
+          version: ${{ github.ref_name }}
 
-    # - name: Smoke test CLI
-    #   run: ezcd-cli --version
+      - name: Smoke test CLI
+        run: ezcd-cli --version
 
-    # - name: Smoke test Server
-    #   run: docker run --rm ghcr.io/ezcdlabs/ezcd:latest --version
+  smoke-test-server:
+    runs-on: ubuntu-latest
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Smoke test Server
+        run: docker run --rm ghcr.io/ezcdlabs/ezcd:${{ github.ref_name }} --version

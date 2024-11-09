@@ -17,7 +17,8 @@ runs:
         else
           version=${{ inputs.version }}
         fi
-        curl -L -o ezcdcli.tar.gz https://github.com/ezcdlabs/ezcd/releases/download/$version/ezcdcli_${{ runner.os }}_${{ runner.arch }}.tar.gz
+
+        curl -L -o ezcdcli.tar.gz https://github.com/ezcdlabs/ezcd/releases/download/$version/ezcd_${{ runner.os }}_${{ runner.arch }}.tar.gz
         tar -xzf ezcdcli.tar.gz -C /usr/local/bin
     - name: Verify installation
       shell: bash
