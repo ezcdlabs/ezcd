@@ -18,10 +18,24 @@ runs:
           version=${{ inputs.version }}
         fi
 
-        url=https://github.com/ezcdlabs/ezcd/releases/download/$version/ezcd_${{ runner.os }}_${{ runner.arch }}.tar.gz
+        case ${{ runner.os }} in
+          Linux) os=linux ;;
+          macOS) os=darwin ;;
+          Windows) os=windows ;;
+          *) echo "Unsupported OS: ${{ runner.os }}" && exit 1 ;;
+        esac
+
+        case ${{ runner.arch }} in
+          X64) arch=amd64 ;;
+          ARM64) arch=arm64 ;;
+          *) echo "Unsupported architecture: ${{ runner.arch }}" && exit 1 ;;
+        esac
+
+        url=https://github.com/ezcdlabs/ezcd/releases/download/$version/ezcd_${os}_${arch}.tar.gz
         echo "Downloading ezcd CLI version $version from $url"
         curl -L -o ezcdcli.tar.gz url
         tar -xzf ezcdcli.tar.gz -C /usr/local/bin
     - name: Verify installation
       shell: bash
       run: ezcd-cli --version
+
