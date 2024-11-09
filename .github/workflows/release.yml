@@ -40,6 +40,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   smoke-test-cli:
+    needs: release
     runs-on: ubuntu-latest
     steps:
       - name: Setup EZCD CLI using github action
@@ -51,6 +52,7 @@ jobs:
         run: ezcd-cli --version
 
   smoke-test-server:
+    needs: release
     runs-on: ubuntu-latest
     steps:
       - name: Log in to GitHub Container Registry
