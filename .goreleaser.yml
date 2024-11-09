@@ -1,5 +1,11 @@
 version: 2
 
+nightly:
+  version_template: "{{ incpatch .Version }}-dev"
+  tag_name: dev
+  publish_release: true
+  keep_single_release: true
+
 builds:
   - id: cli
     main: ./cmd/cli/main.go
@@ -26,9 +32,7 @@ builds:
 
 dockers:
   - image_templates:
-    - 'ghcr.io/ezcdlabs/ezcd-server:{{ .Major }}-{{ .Minor }}-{{ .Patch }}'
-    - 'ghcr.io/ezcdlabs/ezcd-server:{{ .Major }}'
-    - 'ghcr.io/ezcdlabs/ezcd-server:latest'
+    - 'ghcr.io/ezcdlabs/ezcd-server:v{{ .Version }}'
     dockerfile: Dockerfile
     goos: linux
     goarch: amd64

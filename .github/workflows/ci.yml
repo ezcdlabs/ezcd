@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  test:
+  build and release nightly:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,6 +24,13 @@ jobs:
     - name: Run tests
       run: make test
 
-# TODO:
-# - docker build
-# - end to end tests
+    - name: Log in to GitHub Container Registry
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+    - name: Run GoReleaser
+      uses: goreleaser/goreleaser-action@v4.2.0
+      with:
+        version: latest
+        args: release --clean --nightly
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
