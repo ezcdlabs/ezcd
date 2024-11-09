@@ -33,7 +33,7 @@ runs:
 
         url=https://github.com/ezcdlabs/ezcd/releases/download/$version/ezcd_${os}_${arch}.tar.gz
         echo "Downloading ezcd CLI version $version from $url"
-        curl -L -o ezcdcli.tar.gz url
+        curl -L -o ezcdcli.tar.gz $url
         tar -xzf ezcdcli.tar.gz -C /usr/local/bin
     - name: Verify installation
       shell: bash
