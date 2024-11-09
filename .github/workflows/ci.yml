@@ -28,9 +28,11 @@ jobs:
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
     - name: Run GoReleaser
-      uses: goreleaser/goreleaser-action@v4.2.0
+      uses: goreleaser/goreleaser-action@v6
       with:
-        version: latest
+        version: ~> v2
         args: release --clean --nightly
+        # we could specific a file with:
+        # args: release --clean --nightly -f .goreleaser-nightly.yaml
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
