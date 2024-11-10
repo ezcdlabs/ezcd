@@ -112,6 +112,7 @@ jobs:
     
     - name: Acceptance tests
       run: |
+        chmod +x dist/ezcd-cli
         docker run -d -p 3000:8080 --name ezcd-server --rm ghcr.io/ezcdlabs/ezcd-server:snapshot
         cd acceptance && pnpm exec playwright test
         test_exit_code=$?
