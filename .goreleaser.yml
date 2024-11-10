@@ -1,7 +1,7 @@
 version: 2
 
 snapshot:
-  name_template: "snapshot"
+  version_template: "snapshot"
 
 builds:
   - id: cli
@@ -13,7 +13,7 @@ builds:
     goarch:
       - amd64
       - arm64
-    ldflags: -s -w
+    ldflags: -s -w -X main.version={{.Version}}
     binary: ezcd-cli
   
   - id: server
@@ -24,7 +24,7 @@ builds:
       - amd64
     env:
       - CGO_ENABLED=0
-    ldflags: -s -w
+    ldflags: -s -w -X main.version={{.Version}}
     binary: ezcd-server
 
 dockers:
