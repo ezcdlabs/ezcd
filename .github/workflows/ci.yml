@@ -53,3 +53,72 @@ jobs:
 
     - name: Smoke test Server
       run: docker run ghcr.io/ezcdlabs/ezcd-server:snapshot --version
+
+    - name: Save Docker image
+      run: docker save ghcr.io/ezcdlabs/ezcd-server:snapshot -o ezcd-server-snapshot.tar
+
+    - name: Upload CLI artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: cli
+        path: ./dist/cli_linux_amd64_v1/ezcd-cli
+
+    - name: Upload Docker image artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-image
+        path: ezcd-server-snapshot.tar
+
+  acceptance-tests:
+    runs-on: ubuntu-latest
+    needs: ci
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Download CLI artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: cli
+        path: ./dist
+
+    - name: Download Docker image artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: docker-image
+        path: .
+
+    - name: Load Docker image
+      run: docker load -i ezcd-server-snapshot.tar
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Set up pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
+
+    - name: Setup Playwright
+      run: |
+        cd acceptance
+        pnpm install
+        pnpm exec playwright install --with-deps
+    
+    - name: Acceptance tests
+      run: |
+        cp ./dist/cli_linux_amd64_v1/ezcd-cli ./dist/ezcd-cli
+        docker run -d -p 3000:8080 --name ezcd-server --rm ghcr.io/ezcdlabs/ezcd-server:snapshot
+        test_exit_code=$?
+        docker stop ezcd-server
+        exit $test_exit_code
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: playwright-report
+        path: acceptance/playwright-report/
+        retention-days: 30

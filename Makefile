@@ -35,6 +35,12 @@ dev-web:
 dev-server:
 	go run --tags dev cmd/server/main.go
 
+acceptance:
+	cd acceptance && pnpm exec playwright test
+
+playwright:
+	cd acceptance && pnpm exec playwright test --ui --ui-host=0.0.0.0
+
 # Clean up
 clean:
 	rm -rf $(DIST_DIR)
