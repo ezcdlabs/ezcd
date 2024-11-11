@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/ezcdlabs/ezcd/cmd/server/public"
+	"github.com/ezcdlabs/ezcd/pkg/ezcd"
 )
 
 var version = "dev" // default version
@@ -20,9 +22,51 @@ func main() {
 		fmt.Printf("Version: %s\n", version)
 		return
 	}
+	ezcdDatabaseUrl := os.Getenv("EZCD_DATABASE_URL")
+	if ezcdDatabaseUrl == "" {
+		log.Fatalf("database connection string is required, please set EZCD_DATABASE_URL")
+	}
+
+	// TODO: remove me
+	log.Printf("Using database url %s", ezcdDatabaseUrl)
 
 	http.HandleFunc("/api/hello", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello, API!!!")
+	})
+
+	http.HandleFunc("/api/projects", func(w http.ResponseWriter, r *http.Request) {
+		projects, err := ezcd.GetProjects()
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error fetching projects: %v", err), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(projects); err != nil {
+			http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
+		}
+	})
+
+	http.HandleFunc("/api/projects/", func(w http.ResponseWriter, r *http.Request) {
+		projectID := strings.TrimPrefix(r.URL.Path, "/api/projects/")
+		if projectID == "" {
+			http.Error(w, "Project ID is required", http.StatusBadRequest)
+			return
+		}
+
+		project, err := ezcd.GetProject(projectID)
+		if err != nil {
+			if errors.Is(err, ezcd.ErrProjectNotFound) {
+				http.Error(w, "Project not found", http.StatusNotFound)
+			} else {
+				http.Error(w, fmt.Sprintf("Error fetching project: %v", err), http.StatusInternalServerError)
+			}
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(project); err != nil {
+			http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
+		}
 	})
 
 	if public.IsEmbedded {
@@ -48,8 +92,13 @@ func main() {
 		})
 	}
 
-	log.Println("Starting server on :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	port := ":3923"
+	if envPort := os.Getenv("EZCD_PORT"); envPort != "" {
+		port = ":" + envPort
+	}
+
+	log.Printf("Starting server on %s", port)
+	if err := http.ListenAndServe(port, nil); err != nil {
 		log.Fatalf("could not start server: %s\n", err)
 	}
 }

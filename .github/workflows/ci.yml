@@ -74,6 +74,26 @@ jobs:
     runs-on: ubuntu-latest
     needs: ci
 
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: ezcd
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: password
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -110,10 +130,18 @@ jobs:
         pnpm install
         pnpm exec playwright install --with-deps
     
+    - name: Allow exec on ezcd-cli
+      run: chmod +x dist/ezcd-cli
+
+    - name: Migrate postgres
+      run: |
+        for sql_file in $(ls schema/*.sql); do
+          psql -d ezcd -f $sql_file
+        done
+
     - name: Acceptance tests
       run: |
-        chmod +x dist/ezcd-cli
-        docker run -d -p 3000:8080 --name ezcd-server --rm ghcr.io/ezcdlabs/ezcd-server:snapshot
+        docker run -d --rm --name ezcd-server -p 3923:3923 -e EZCD_DATABASE_URL=postgres://postgres:password@postgres:5432/ezcd?sslmode=disable ghcr.io/ezcdlabs/ezcd-server:snapshot
         cd acceptance && pnpm exec playwright test
         test_exit_code=$?
         docker stop ezcd-server

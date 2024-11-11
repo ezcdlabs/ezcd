@@ -1,10 +1,11 @@
 import type { Component } from 'solid-js';
-import { createResource } from 'solid-js';
+import { createResource, For } from 'solid-js';
 import { Router, Route } from "@solidjs/router";
+import Project from './pages/Project';
 
-const fetchHello = async () => {
-  const response = await fetch('/api/hello');
-  return response.text();
+const fetchProjects = async () => {
+  const response = await fetch('/api/projects');
+  return response.json();
 };
 
 const App: Component = () => {
@@ -18,12 +19,23 @@ const App: Component = () => {
 };
 
 function Home() {
-  const [hello] = createResource(fetchHello);
+  const [projects] = createResource(fetchProjects);
 
-  return <div>Home page: {hello()}</div>
+  return <main>
+    <h1>
+      Your Projects
+    </h1>
+    <ul>
+      <For each={projects()}>
+        {(project: any) => (
+          <li>
+            <a href={`/project/${project.id}`}>Project: {project.name}</a>
+          </li>
+        )}
+      </For>
+    </ul>
+  </main>
 }
-function Project() {
-  return <div>Project page</div>
-}
+
 
 export default App;

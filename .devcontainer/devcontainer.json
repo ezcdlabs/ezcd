@@ -3,7 +3,13 @@
     "service": "devcontainer",
     "workspaceFolder": "/workspace",
     "forwardPorts": [
-        5432
+        3923
     ],
+    "portsAttributes": {
+        "3923": {
+            "label": "Application",
+            "onAutoForward": "openPreview",
+        }
+    },
     "postCreateCommand": "./.devcontainer/setup.sh"
 }

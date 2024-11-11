@@ -1,43 +1,16 @@
-import { test, expect } from '@playwright/test';
-import { promisify } from 'util';
-import { exec as execCallback } from 'child_process';
+import { test } from '@playwright/test';
+import DSL from './dsl/DSL';
 
-const exec = promisify(execCallback);
-async function ezcdCli(args: string) {
-  try {
-    const { stdout, stderr } = await exec(`../dist/ezcd-cli ${args}`);
-    console.log(`stdout: ${stdout}`);
-    console.error(`stderr: ${stderr}`);
-    return stdout;
-  } catch (error) {
-    console.error(`exec error: ${error}`);
-    throw error;
-  }
-}
+test('should create commits', async ({ page }) => {
 
-// test('has title', async ({ page }) => {
-//   await page.goto('https://playwright.dev/');
+  const dsl = new DSL(page);
 
-//   // Expect a title "to contain" a substring.
-//   await expect(page).toHaveTitle(/Playwright/);
-// });
+  await dsl.cli.getVersion();
 
-// test('get started link', async ({ page }) => {
-//   await page.goto('https://playwright.dev/');
-
-//   // Click the get started link.
-//   await page.getByRole('link', { name: 'Get started' }).click();
-
-//   // Expects page to have a heading with the name of Installation.
-//   await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
-// });
-
-test('should show the API result', async ({ page }) => {
-  const result = await ezcdCli('--version')
-
-  await expect(result).toBeTruthy();
-
-  await page.goto("http://localhost:3000/");
-
-  await expect(page.getByText('Hello, API!!!')).toBeVisible();
+  await dsl.cli.createProject('project1');
+  await dsl.cli.commitPhaseStarted('project1', 'commit1');
+  await dsl.cli.commitPhaseStarted('project1', 'commit2');
+  await dsl.cli.commitPhaseStarted('project1', 'commit3');
+  
+  await dsl.ui.verifyProjectCommits('project1', ['commit1', 'commit2', 'commit3']);
 });

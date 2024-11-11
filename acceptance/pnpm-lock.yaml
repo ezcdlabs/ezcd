@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      uuid:
+        specifier: ^11.0.2
+        version: 11.0.2
     devDependencies:
       '@playwright/test':
         specifier: ^1.48.2
@@ -43,6 +47,10 @@ packages:
   undici-types@6.19.8:
     resolution: {integrity: sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==}
 
+  uuid@11.0.2:
+    resolution: {integrity: sha512-14FfcOJmqdjbBPdDjFQyk/SdT4NySW4eM0zcG+HqbHP5jzuH56xO3J1DGhgs/cEMCfwYi3HQI1gnTO62iaG+tQ==}
+    hasBin: true
+
 snapshots:
 
   '@playwright/test@1.48.2':
@@ -65,3 +73,5 @@ snapshots:
       fsevents: 2.3.2
 
   undici-types@6.19.8: {}
+
+  uuid@11.0.2: {}

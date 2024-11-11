@@ -12,9 +12,9 @@ export default defineConfig({
     solidPlugin(),
   ],
   server: {
-    port: 3000,
+    port: 3923,
     proxy: {
-      '/api': 'http://localhost:8080'
+      '/api': 'http://localhost:3924'
     }
   },
   build: {

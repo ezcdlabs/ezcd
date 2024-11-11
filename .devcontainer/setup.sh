@@ -12,3 +12,6 @@ git config --global alias.lga "log --graph --abbrev-commit --decorate --format=f
 
 # Set git to use rebase
 git config --global pull.rebase true
+
+# install pg-schema-diff
+go install github.com/stripe/pg-schema-diff/cmd/pg-schema-diff@latest
