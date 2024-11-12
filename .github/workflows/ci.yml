@@ -183,9 +183,9 @@ jobs:
 
     - name: Stop server container
       if: always()
-        run: |
-          docker stop ezcd-server || true
-          docker rm ezcd-server || true
+      run: |
+        docker stop ezcd-server || true
+        docker rm ezcd-server || true
 
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
