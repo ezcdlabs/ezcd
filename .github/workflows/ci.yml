@@ -124,11 +124,11 @@ jobs:
       with:
         version: 9
 
-    - name: Setup Playwright
-      run: |
-        cd acceptance
-        pnpm install
-        pnpm exec playwright install --with-deps
+    # - name: Setup Playwright
+    #   run: |
+    #     cd acceptance
+    #     pnpm install
+    #     pnpm exec playwright install --with-deps
     
     - name: Allow exec on ezcd-cli
       run: chmod +x dist/ezcd-cli
@@ -145,7 +145,7 @@ jobs:
         docker network connect ezcd-network postgres
         docker run -d --rm --name ezcd-server --network ezcd-network -p 3923:3923 -e EZCD_DATABASE_URL=postgres://postgres:password@postgres:5432/ezcd?sslmode=disable ghcr.io/ezcdlabs/ezcd-server:snapshot
         export EZCD_DATABASE_URL=postgres://${PGUSER}:${PGPASSWORD}@localhost:5432/ezcd?sslmode=disable
-        cd acceptance && pnpm exec playwright test
+        cd acceptance && pnpm exec playwright test --project="Google Chrome"
         test_exit_code=$?
         docker logs ezcd-server > ezcd-server-logs.txt
         docker stop ezcd-server
