@@ -168,7 +168,7 @@ jobs:
         echo "Server is ready ($counter seconds)"
 
     - name: Acceptance tests
-      run: cd acceptance && pnpm install && pnpm dlx playwright test --project="chromium"
+      run: cd acceptance && pnpm install && pnpm exec playwright test --project="chromium"
     
     - name: Save server logs
       if: always()
