@@ -78,6 +78,7 @@ jobs:
       PGHOST: localhost
       PGUSER: postgres
       PGPASSWORD: password
+      EZCD_DATABASE_URL: postgres://postgres:password@localhost:5432/ezcd?sslmode=disable
 
     services:
       postgres:
@@ -135,9 +136,18 @@ jobs:
         done
 
     - name: Start server container
-      run: docker run -d --rm --name ezcd-server --network=host -p 3923:3923 -e EZCD_DATABASE_URL=${EZCD_DATABASE_URL} ghcr.io/ezcdlabs/ezcd-server:snapshot
+      run: docker run -d --name ezcd-server --network=host -p 3923:3923 -e EZCD_DATABASE_URL=${EZCD_DATABASE_URL} ghcr.io/ezcdlabs/ezcd-server:snapshot
 
-    - name: Wait for server to start
+    - name: Check that the server started
+      run: |
+        docker logs ezcd-server
+        # if the server has already exited, then exit now:
+        if [ "$(docker inspect -f '{{.State.Running}}' ezcd-server)" == "false" ]; then
+          echo "Server did not start"
+          exit 1
+        fi
+
+    - name: Wait for server to be ready
       run: |
         counter=0
         echo "Waiting for server to start"
@@ -164,6 +174,7 @@ jobs:
     - name: Save server logs
       if: always()
       run: 
+        docker logs ezcd-server
         docker logs ezcd-server > ezcd-server-logs.txt
     
     - name: Dump ezcd database
@@ -172,7 +183,9 @@ jobs:
 
     - name: Stop server container
       if: always()
-      run: docker stop ezcd-server
+        run: |
+          docker stop ezcd-server || true
+          docker rm ezcd-server || true
 
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
