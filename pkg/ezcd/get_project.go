@@ -27,7 +27,7 @@ func GetProject(id string) (*Project, error) {
 	var project Project
 	if err := row.Scan(&project.ID, &project.Name); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("project not found")
+			return nil, ErrProjectNotFound
 		}
 		return nil, fmt.Errorf("failed to scan project: %w", err)
 	}

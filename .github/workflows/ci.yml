@@ -142,7 +142,7 @@ jobs:
     - name: Acceptance tests
       run: |
         docker run -d --rm --name ezcd-server -p 3923:3923 -e EZCD_DATABASE_URL=postgres://postgres:password@postgres:5432/ezcd?sslmode=disable ghcr.io/ezcdlabs/ezcd-server:snapshot
-        export EZCD_DATABASE_URL=postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}:5432/ezcd?sslmode=disable
+        export EZCD_DATABASE_URL=postgres://${PGUSER}:${PGPASSWORD}@localhost:5432/ezcd?sslmode=disable
         cd acceptance && pnpm exec playwright test
         test_exit_code=$?
         docker stop ezcd-server

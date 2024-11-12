@@ -56,7 +56,9 @@ func main() {
 		project, err := ezcd.GetProject(projectID)
 		if err != nil {
 			if errors.Is(err, ezcd.ErrProjectNotFound) {
-				http.Error(w, "Project not found", http.StatusNotFound)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusNotFound)
+				json.NewEncoder(w).Encode(map[string]string{"error": "Project not found"})
 			} else {
 				http.Error(w, fmt.Sprintf("Error fetching project: %v", err), http.StatusInternalServerError)
 			}

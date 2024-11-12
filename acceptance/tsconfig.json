@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "types": [
+            "node"
+        ],
+    }
+}

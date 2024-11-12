@@ -8,6 +8,9 @@ export default class UiDriver {
     }
 
     async getProject(projectId: string) {
+        // Just so that the home page shows up in the trace.
+        await this.page.goto('/');
+
         await this.page.goto(`/project/${projectId}`);
 
         await this.page.waitForSelector(".project-name");

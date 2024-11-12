@@ -39,6 +39,9 @@ dev-web:
 dev-server:
 	EZCD_PORT=3924 EZCD_DATABASE_URL=${EZCD_DATABASE_URL} go run --tags dev cmd/server/main.go
 
+test-server:
+	EZCD_DATABASE_URL=${EZCD_DATABASE_URL} ./dist/ezcd-server
+
 acceptance:
 	cd acceptance && pnpm exec playwright test
 
