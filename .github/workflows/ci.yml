@@ -145,8 +145,26 @@ jobs:
         export EZCD_DATABASE_URL=postgres://${PGUSER}:${PGPASSWORD}@localhost:5432/ezcd?sslmode=disable
         cd acceptance && pnpm exec playwright test
         test_exit_code=$?
+        docker logs ezcd-server > ezcd-server-logs.txt
         docker stop ezcd-server
         exit $test_exit_code
+
+    - name: Dump ezcd database
+      run: pg_dump ezcd -f ezcd_dump.sql
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: ezcd-database-dump
+        path: ezcd_dump.sql
+        retention-days: 30
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: ezcd-server-logs
+        path: ezcd-server-logs.txt
+        retention-days: 30
 
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
