@@ -79,6 +79,22 @@ jobs:
       PGUSER: postgres
       PGPASSWORD: password
 
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: ezcd
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -112,23 +128,17 @@ jobs:
     - name: Allow exec on ezcd-cli
       run: chmod +x dist/ezcd-cli
 
-    - name: Start containers
-      run: |
-        docker network create ezcd-network
-        docker run -d --rm --name postgres --network ezcd-network -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=ezcd -p 5432:5432 postgres:13
-        docker run -d --rm --name ezcd-server --network ezcd-network -p 3923:3923 -e EZCD_DATABASE_URL=postgres://postgres:password@postgres:5432/ezcd?sslmode=disable ghcr.io/ezcdlabs/ezcd-server:snapshot
-
     - name: Run database migrations
       run: |
         for sql_file in $(ls schema/*.sql); do
           psql -d ezcd -f $sql_file
         done
 
+    - name: Start server container
+      run: docker run -d --rm --name ezcd-server --network=host -p 3923:3923 -e EZCD_DATABASE_URL=${EZCD_DATABASE_URL} ghcr.io/ezcdlabs/ezcd-server:snapshot
+
     - name: Acceptance tests
-      env:
-        EZCD_DATABASE_URL: postgres://postgres:password@localhost:5432/ezcd?sslmode=disable
-      run: |
-        cd acceptance && pnpm exec playwright test --project="Google Chrome"
+      run: cd acceptance && pnpm exec playwright test --project="Google Chrome"
     
     - name: Save server logs
       if: always()
@@ -136,14 +146,12 @@ jobs:
         docker logs ezcd-server > ezcd-server-logs.txt
     
     - name: Dump ezcd database
+      if: always()
       run: pg_dump ezcd -f ezcd_dump.sql
 
-    - name: Stop containers
+    - name: Stop server container
       if: always()
-      run: |
-        docker stop ezcd-server
-        docker stop postgres
-        docker network rm ezcd-network
+      run: docker stop ezcd-server
 
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
