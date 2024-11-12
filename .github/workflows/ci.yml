@@ -141,15 +141,20 @@ jobs:
       run: |
         counter=0
         echo "Waiting for server to start"
-        while [ "$(curl -s http://localhost:3923/health | jq -r '.status')" != "healthy" ]; do
+        response=$(curl -s http://localhost:3923/health)
+        while [ "$(echo $response | jq -r '.status')" != "healthy" ]; do
           counter=$((counter+1))
-          echo "Server not ready yet ($counter seconds)"
-          # if counter is greater than 30, then exit
+          if [ -z "$response" ]; then
+            echo "Server not ready yet ($counter seconds): [empty]"
+          else
+            echo "Server not ready yet ($counter seconds): $response"
+          fi
           if [ $counter -gt 10 ]; then
             echo "Server did not start in time"
             exit 1
           fi
           sleep 1
+          response=$(curl -s http://localhost:3923/health)
         done
         echo "Server is ready ($counter seconds)"
 
