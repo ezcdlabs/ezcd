@@ -76,7 +76,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:latest
+        image: postgres:13
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
@@ -141,12 +141,15 @@ jobs:
 
     - name: Acceptance tests
       run: |
-        docker run -d --rm --name ezcd-server -p 3923:3923 -e EZCD_DATABASE_URL=postgres://postgres:password@postgres:5432/ezcd?sslmode=disable ghcr.io/ezcdlabs/ezcd-server:snapshot
+        docker network create ezcd-network
+        docker network connect ezcd-network postgres
+        docker run -d --rm --name ezcd-server --network ezcd-network -p 3923:3923 -e EZCD_DATABASE_URL=postgres://postgres:password@postgres:5432/ezcd?sslmode=disable ghcr.io/ezcdlabs/ezcd-server:snapshot
         export EZCD_DATABASE_URL=postgres://${PGUSER}:${PGPASSWORD}@localhost:5432/ezcd?sslmode=disable
         cd acceptance && pnpm exec playwright test
         test_exit_code=$?
         docker logs ezcd-server > ezcd-server-logs.txt
         docker stop ezcd-server
+        docker network rm ezcd-network
         exit $test_exit_code
 
     - name: Dump ezcd database
