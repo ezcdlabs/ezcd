@@ -168,11 +168,11 @@ jobs:
         echo "Server is ready ($counter seconds)"
 
     - name: Acceptance tests
-      run: cd acceptance && pnpm install && pnpm exec playwright test --project="chromium"
+      run: cd acceptance && pnpm install && pnpm exec playwright test --project="Google Chrome"
     
     - name: Save server logs
       if: always()
-      run: 
+      run: |
         docker logs ezcd-server
         docker logs ezcd-server > ezcd-server-logs.txt
     
