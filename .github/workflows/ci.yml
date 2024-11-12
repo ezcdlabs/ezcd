@@ -137,8 +137,24 @@ jobs:
     - name: Start server container
       run: docker run -d --rm --name ezcd-server --network=host -p 3923:3923 -e EZCD_DATABASE_URL=${EZCD_DATABASE_URL} ghcr.io/ezcdlabs/ezcd-server:snapshot
 
+    - name: Wait for server to start
+      run: |
+        counter=0
+        echo "Waiting for server to start"
+        while [ "$(curl -s http://localhost:3923/health | jq -r '.status')" != "healthy" ]; do
+          counter=$((counter+1))
+          echo "Server not ready yet ($counter seconds)"
+          # if counter is greater than 30, then exit
+          if [ $counter -gt 10 ]; then
+            echo "Server did not start in time"
+            exit 1
+          fi
+          sleep 1
+        done
+        echo "Server is ready ($counter seconds)"
+
     - name: Acceptance tests
-      run: cd acceptance && pnpm exec playwright test --project="Google Chrome"
+      run: cd acceptance && pnpm dlx playwright test --project="Google Chrome"
     
     - name: Save server logs
       if: always()

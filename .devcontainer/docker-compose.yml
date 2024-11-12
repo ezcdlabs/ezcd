@@ -10,6 +10,7 @@ services:
       PGHOST: db
       PGUSER: postgres
       PGPASSWORD: password
+      EZCD_DATABASE_URL: postgres://postgres:password@db/ezcd?sslmode=disable
     volumes:
       - ..:/workspace:cached
     command: /bin/sh -c "while sleep 1000; do :; done"

@@ -30,6 +30,22 @@ func main() {
 	// TODO: remove me
 	log.Printf("Using database url %s", ezcdDatabaseUrl)
 
+	// health check that pings the database
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		type HealthResponse struct {
+			Status  string `json:"status"`
+			Message string `json:"message,omitempty"`
+		}
+
+		if _, err := ezcd.GetProjects(); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(HealthResponse{Status: "unhealthy", Message: err.Error()})
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(HealthResponse{Status: "healthy"})
+	})
+
 	http.HandleFunc("/api/hello", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello, API!!!")
 	})
