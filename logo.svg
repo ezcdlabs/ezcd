@@ -1,0 +1,16 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_202_119)">
+<circle cx="90" cy="90" r="89" fill="#061732" stroke="white" stroke-width="2"/>
+<rect x="75.7913" y="125.879" width="130.39" height="16.2764" transform="rotate(-46.0529 75.7913 125.879)" fill="#6AA2FF"/>
+<rect x="42.321" y="93.3582" width="15.5741" height="61.1734" transform="rotate(-46.0529 42.321 93.3582)" fill="#6AA2FF"/>
+<rect x="59.3961" y="76.1584" width="61.3323" height="16.2764" transform="rotate(-46.0529 59.3961 76.1584)" fill="white"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M4.85906 119.248C2.01634 110.971 0.346628 102.149 0.0484001 92.9795L32.8521 124.599L22.0437 135.812L4.85906 119.248Z" fill="white"/>
+<rect x="76.0411" y="91.7976" width="83.0544" height="16.2764" transform="rotate(-46.0529 76.0411 91.7976)" fill="#F7C421"/>
+<rect x="9.71991" y="93.3582" width="15.5741" height="61.1734" transform="rotate(-46.0529 9.71991 93.3582)" fill="#F7C421"/>
+</g>
+<defs>
+<clipPath id="clip0_202_119">
+<rect width="180" height="180" fill="white"/>
+</clipPath>
+</defs>
+</svg>
