@@ -1,5 +1,5 @@
 <div align="center">
-  <a href="https://nextjs.org">
+  <a href="https://github.com/ezcdlabs/ezcd/">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="./logo.svg">
       <img alt="EZCD logo" src="./logo.svg" height="128">
