@@ -48,7 +48,7 @@ acceptance:
 playwright:
 	cd acceptance && pnpm exec playwright test --ui --ui-host=0.0.0.0
 
-db-set-env:
+env:
 	@echo 'export EZCD_DATABASE_URL='${EZCD_DATABASE_URL}
 
 db-reset:

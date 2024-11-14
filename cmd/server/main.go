@@ -13,9 +13,30 @@ import (
 
 	"github.com/ezcdlabs/ezcd/cmd/server/public"
 	"github.com/ezcdlabs/ezcd/pkg/ezcd"
+	"github.com/ezcdlabs/ezcd/pkg/ezcd_postgres"
 )
 
 var version = "dev" // default version
+
+type Project struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+func mapToAnnotatedProject(p ezcd.Project) Project {
+	return Project{
+		ID:   p.ID,
+		Name: p.Name,
+	}
+}
+
+func mapToAnnotatedProjects(ps []ezcd.Project) []Project {
+	projects := make([]Project, len(ps))
+	for i, p := range ps {
+		projects[i] = mapToAnnotatedProject(p)
+	}
+	return projects
+}
 
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "--version" {
@@ -27,6 +48,8 @@ func main() {
 		log.Fatalf("database connection string is required, please set EZCD_DATABASE_URL")
 	}
 
+	ezcdService := ezcd.NewEzcdService(ezcd_postgres.NewPostgresDatabase(ezcdDatabaseUrl))
+
 	// TODO: remove me
 	log.Printf("Using database url %s", ezcdDatabaseUrl)
 
@@ -37,7 +60,7 @@ func main() {
 			Message string `json:"message,omitempty"`
 		}
 
-		if _, err := ezcd.GetProjects(); err != nil {
+		if _, err := ezcdService.GetProjects(); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(HealthResponse{Status: "unhealthy", Message: err.Error()})
 			return
@@ -51,13 +74,14 @@ func main() {
 	})
 
 	http.HandleFunc("/api/projects", func(w http.ResponseWriter, r *http.Request) {
-		projects, err := ezcd.GetProjects()
+		projects, err := ezcdService.GetProjects()
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error fetching projects: %v", err), http.StatusInternalServerError)
 			return
 		}
+		annotatedProjects := mapToAnnotatedProjects(projects)
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(projects); err != nil {
+		if err := json.NewEncoder(w).Encode(annotatedProjects); err != nil {
 			http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
 		}
 	})
@@ -69,7 +93,7 @@ func main() {
 			return
 		}
 
-		project, err := ezcd.GetProject(projectID)
+		project, err := ezcdService.GetProject(projectID)
 		if err != nil {
 			if errors.Is(err, ezcd.ErrProjectNotFound) {
 				w.Header().Set("Content-Type", "application/json")
@@ -81,8 +105,9 @@ func main() {
 			return
 		}
 
+		annotatedProject := mapToAnnotatedProject(*project)
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(project); err != nil {
+		if err := json.NewEncoder(w).Encode(annotatedProject); err != nil {
 			http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
 		}
 	})
