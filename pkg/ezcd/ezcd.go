@@ -7,6 +7,7 @@ type Database interface {
 
 	GetProject(id string) (*Project, error)
 	GetProjects() ([]Project, error)
+	GetCommits(id string) ([]Commit, error)
 
 	BeginWork() (UnitOfWork, error)
 }
@@ -18,6 +19,11 @@ type UnitOfWork interface {
 
 	FindProjectForUpdate(id string) (*Project, error)
 	SaveProject(project Project) error
+
+	WaitForProjectLock(id string) error
+
+	FindCommitForUpdate(id string) (*Commit, error)
+	SaveCommit(commit Commit) error
 }
 
 // Ezcd interface defines the service methods for the Ezcd application.
@@ -29,6 +35,10 @@ type Ezcd interface {
 	GetProject(id string) (*Project, error)
 	GetProjects() ([]Project, error)
 	CreateProject(name string) (*Project, error)
+
+	// commits.go
+	GetCommits(id string) ([]Commit, error)
+	CommitPhaseStarted(commitData CommitData) (*Commit, error)
 }
 
 type EzcdService struct {

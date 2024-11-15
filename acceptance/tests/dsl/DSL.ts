@@ -2,9 +2,20 @@ import { expect, Page } from '@playwright/test';
 import UiDriver from './UiDriver';
 import * as uuid from 'uuid'
 import CLIDriver from './CliDriver';
+import * as dateFns from 'date-fns';
 
 export default class DSL {
     private projects = new Map<string, string>();
+    private commits = new Map<string, string>();
+
+    private getOrThrow(map: Map<string, string>, key: string) {
+        const value = map.get(key);
+        if (!value) {
+            throw new Error(`Key ${key} not found`);
+        }
+        return value;
+    }
+
     private uiDriver: UiDriver;
     private cliDriver: CLIDriver;
 
@@ -19,24 +30,114 @@ export default class DSL {
         },
 
         createProject: async (project: string) => {
-            const projectId = await this.cliDriver.createProject(project);
+            const projectId = await this.cliDriver.createProject(randomSuffix(project));
             this.projects.set(project, projectId);
         },
 
-        commitPhaseStarted: async (project: string, commitMessage: string) => {
-            var projectId = this.projects.get(project);
-            if (!projectId) {
-                throw new Error(`Project ${project} not found`);
-            }
+        commitStageStarted: async (params: { project: string, commitMessage: string, commitAuthorName?: string, commitDate?: string }) => {
+            const projectId = this.getOrThrow(this.projects, params.project)
+            const commitHash = uuid.v4();
+            const commitAuthorName = params.commitAuthorName ?? "John Doe";
+            const commitAuthorEmail = params.commitAuthorName ?? "jd@ezcd.com";
+            const commitDate = params.commitDate ? dateFns.parse(params.commitDate, "yyyy-MM-dd HH:mm:ss", new Date()) : new Date();
 
-            // TODO, actuall call the CLI and create a commit
-            // await this.cliDriver.commitPhaseStarted(projectId, commitMessage);
+            this.commits.set(params.commitMessage, commitHash);
+
+            await this.cliDriver.commitStageStarted({
+                projectId,
+                commitHash,
+                commitMessage: params.commitMessage,
+                commitAuthorName,
+                commitAuthorEmail,
+                commitDate
+            });
+        },
+
+        commitStagePassed: async (params: { project: string, commitMessage: string }) => {
+            const projectId = this.getOrThrow(this.projects, params.project)
+            const commitHash = this.getOrThrow(this.commits, params.commitMessage);
+
+            await this.cliDriver.commitStagePassed({
+                projectId,
+                commitHash,
+            });
+        },
+
+        commitStageFailed: async (params: { project: string, commitMessage: string }) => {
+            const projectId = this.getOrThrow(this.projects, params.project)
+            const commitHash = this.getOrThrow(this.commits, params.commitMessage);
+
+            await this.cliDriver.commitStageFailed({
+                projectId,
+                commitHash,
+            });
+        },
+
+        acceptanceStageStarted: async (params: { project: string, commitMessage: string }) => {
+            const projectId = this.getOrThrow(this.projects, params.project)
+            const commitHash = this.getOrThrow(this.commits, params.commitMessage);
+
+            await this.cliDriver.acceptanceStageStarted({
+                projectId,
+                commitHash,
+            });
+        },
+
+        acceptanceStagePassed: async (params: { project: string, commitMessage: string }) => {
+            const projectId = this.getOrThrow(this.projects, params.project)
+            const commitHash = this.getOrThrow(this.commits, params.commitMessage);
+
+            await this.cliDriver.acceptanceStagePassed({
+                projectId,
+                commitHash,
+            });
+        },
+
+        acceptanceStageFailed: async (params: { project: string, commitMessage: string }) => {
+            const projectId = this.getOrThrow(this.projects, params.project)
+            const commitHash = this.getOrThrow(this.commits, params.commitMessage);
+
+            await this.cliDriver.acceptanceStageFailed({
+                projectId,
+                commitHash,
+            });
+        },
+
+        deployStarted: async (params: { project: string, commitMessage: string }) => {
+            const projectId = this.getOrThrow(this.projects, params.project)
+            const commitHash = this.getOrThrow(this.commits, params.commitMessage);
+
+            await this.cliDriver.deployStarted({
+                projectId,
+                commitHash,
+            });
+        },
+
+        deployPassed: async (params: { project: string, commitMessage: string }) => {
+            const projectId = this.getOrThrow(this.projects, params.project)
+            const commitHash = this.getOrThrow(this.commits, params.commitMessage);
+
+            await this.cliDriver.deployPassed({
+                projectId,
+                commitHash,
+            });
+        },
+
+        deployFailed: async (params: { project: string, commitMessage: string }) => {
+            const projectId = this.getOrThrow(this.projects, params.project)
+            const commitHash = this.getOrThrow(this.commits, params.commitMessage);
+
+            await this.cliDriver.deployFailed({
+                projectId,
+                commitHash,
+            });
         }
+
     }
 
     ui = {
         verifyProject: async (project: string) => {
-            var projectId = this.projects.get(project);
+            const projectId = this.projects.get(project);
             if (!projectId) {
                 throw new Error(`Project ${project} not found`);
             }
@@ -45,14 +146,15 @@ export default class DSL {
             expect(actual).toEqual(project);
         },
 
-        verifyProjectCommits: async (project: string, expected: string[]) => {
-            var projectId = this.projects.get(project);
-            if (!projectId) {
-                throw new Error(`Project ${project} not found`);
-            }
-            const actual = await this.uiDriver.getProjectCommits(projectId);
+        checkCommit: async (params: { project: string, commitMessage: string, commitStage?: string }) => {
+            const projectId = this.getOrThrow(this.projects, params.project)
+            const commitHash = this.getOrThrow(this.commits, params.commitMessage);
 
-            expect(actual).toEqual(expected);
+            const commit = await this.uiDriver.getProjectCommit({ projectId, commitHash });
+
+            if (params.commitStage) {
+                expect(commit.commitStageStatus).toEqual(params.commitStage);
+            }
         }
     }
 }

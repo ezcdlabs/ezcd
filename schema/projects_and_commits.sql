@@ -1,10 +1,17 @@
+CREATE TABLE IF NOT EXISTS projects (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    project_lock_id SERIAL NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS commits (
+    project_id TEXT NOT NULL,
     commit_hash TEXT PRIMARY KEY NOT NULL,
-    -- commit_author_name TEXT NOT NULL,
-    -- commit_author_email TEXT NOT NULL,
-    commit_message TEXT NOT NULL
-    -- commit_date TIMESTAMPTZ NOT NULL,
-    -- created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    commit_author_name TEXT NOT NULL,
+    commit_author_email TEXT NOT NULL,
+    commit_message TEXT NOT NULL,
+    commit_date TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 
     -- commit_phase_started TIMESTAMPTZ,
     -- commit_phase_completed TIMESTAMPTZ,
@@ -17,4 +24,3 @@ CREATE TABLE IF NOT EXISTS commits (
     -- released_to_production TIMESTAMPTZ,
     -- ltfc_completed TIMESTAMPTZ
 );
-

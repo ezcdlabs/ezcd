@@ -1,11 +1,30 @@
 import { useParams } from "@solidjs/router";
-import { createResource, Show, Suspense } from "solid-js";
+import { createResource, For, Show, Suspense } from "solid-js";
 
-const fetchProject = async (id: string) => {
+interface Project {
+  // Define the structure of a project here
+  id: string;
+  name: string;
+}
+
+interface Commit {
+  // Define the structure of a commit here
+  hash: string;
+  message: string;
+  authorName: string;
+  authorEmail: string;
+  date: string;
+}
+
+const fetchProject = async (id: string): Promise<Project> => {
   const response = await fetch(`/api/projects/${id}`);
   return response.json();
 };
 
+const fetchCommits = async (projectId: string): Promise<Commit[]> => {
+  const response = await fetch(`/api/projects/${projectId}/commits`);
+  return response.json();
+};
 
 export default function Project() {
 
@@ -17,12 +36,32 @@ export default function Project() {
       <div>Project page
         <h1 class="project-name">{project()?.name}</h1>
         <p>Project ID: {params.projectId}</p>
-        <ul>
-          <li class="commit">commit1</li>
-          <li class="commit">commit2</li>
-          <li class="commit">commit3</li>
-        </ul>
+        <Commits projectId={params.projectId} />
       </div>
     </Show>
   </Suspense>
+}
+
+function Commits(props: { projectId: string }) {
+  const [commits] = createResource(() => fetchCommits(props.projectId));
+  return <Suspense fallback={<div>Loading...</div>}>
+    <Show when={commits()} fallback={<div>Commits not found.</div>}>
+      <ul data-commits="loaded">
+        <For each={commits()}>
+          {commit => (
+            <li data-commit={commit.hash}>
+              Author: <span data-label="commitAuthorName">{commit.authorName}</span>(<span data-label="commitAuthorEmail">{commit.authorEmail}</span>)
+              &nbsp;
+              Message: <span data-label="commitMessage">{commit.message}</span>
+              &nbsp;
+              Message: <span data-label="commitDate">{commit.date}</span>
+              &nbsp;
+              Status: <span data-label="commitStageStatus" data-value="unimplemented">UNIMPLEMENTED</span>
+            </li>
+          )}
+        </For>
+      </ul>
+    </Show>
+  </Suspense>
+
 }

@@ -14,8 +14,95 @@ type PostgresDatabase struct {
 	databaseUrl string
 }
 
+// GetCommits implements ezcd.Database.
+func (p *PostgresDatabase) GetCommits(id string) ([]ezcd.Commit, error) {
+	connStr := p.databaseUrl
+	if connStr == "" {
+		return nil, fmt.Errorf("database connection string is required, please set EZCD_DATABASE_URL")
+	}
+
+	conn, err := sql.Open("postgres", connStr)
+	if err != nil {
+		return nil, fmt.Errorf("unable to connect to database: %v", err)
+	}
+	defer conn.Close()
+
+	rows, err := conn.QueryContext(context.Background(), `SELECT commit_hash, commit_author_name, commit_author_email, commit_message, commit_date FROM commits WHERE project_id = $1`, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query commits from the database: %w", err)
+	}
+	defer rows.Close()
+
+	var commits []ezcd.Commit
+	for rows.Next() {
+		var commit ezcd.Commit
+		if err := rows.Scan(&commit.Hash, &commit.AuthorName, &commit.AuthorEmail, &commit.Message, &commit.Date); err != nil {
+			return nil, fmt.Errorf("failed to scan commit: %w", err)
+		}
+		commits = append(commits, commit)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
+	}
+
+	return commits, nil
+}
+
 type PostgresUnitOfWork struct {
 	tx *sql.Tx
+}
+
+// FindCommitForUpdate implements ezcd.UnitOfWork.
+func (u *PostgresUnitOfWork) FindCommitForUpdate(id string) (*ezcd.Commit, error) {
+	row := u.tx.QueryRowContext(context.Background(), `SELECT commit_hash, commit_author_name, commit_author_email, commit_message, commit_date FROM commits WHERE project_id = $1 FOR UPDATE`, id)
+
+	var commit ezcd.Commit
+	if err := row.Scan(&commit.Hash, &commit.AuthorName, &commit.AuthorEmail, &commit.Message, &commit.Date); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("commit not found: %w", err)
+		}
+		return nil, fmt.Errorf("failed to scan commit: %w", err)
+	}
+
+	return &commit, nil
+}
+
+// SaveCommit implements ezcd.UnitOfWork.
+func (u *PostgresUnitOfWork) SaveCommit(commit ezcd.Commit) error {
+	_, err := u.tx.ExecContext(context.Background(), `
+	INSERT INTO commits (commit_hash, commit_author_name, commit_author_email, commit_message, commit_date, project_id) 
+	VALUES ($1, $2, $3, $4, $5, $6)
+	ON CONFLICT (commit_hash) DO UPDATE 
+	SET commit_author_name = EXCLUDED.commit_author_name,
+		commit_author_email = EXCLUDED.commit_author_email,
+		commit_message = EXCLUDED.commit_message,
+		commit_date = EXCLUDED.commit_date`,
+		commit.Hash, commit.AuthorName, commit.AuthorEmail, commit.Message, commit.Date, commit.Project)
+	if err != nil {
+		return fmt.Errorf("failed to save commit: %w", err)
+	}
+	return nil
+}
+
+// WaitForProjectLock implements ezcd.UnitOfWork.
+func (u *PostgresUnitOfWork) WaitForProjectLock(id string) error {
+	var projectID string
+	var projectLockId int
+	row := u.tx.QueryRowContext(context.Background(), `SELECT id, project_lock_id FROM projects WHERE id = $1`, projectID)
+	err := row.Scan(&projectID, &projectLockId)
+
+	if err != nil {
+		return fmt.Errorf("failed to fetch project: %w", err)
+	}
+
+	// Acquire advisory lock
+	_, err = u.tx.ExecContext(context.Background(), `SELECT pg_advisory_lock($1)`, projectLockId)
+	if err != nil {
+		return fmt.Errorf("failed to lock project: %w", err)
+	}
+
+	return nil
 }
 
 // FindProjectForUpdate implements ezcd.UnitOfWork.

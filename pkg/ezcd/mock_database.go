@@ -7,12 +7,28 @@ import (
 
 type MockDatabase struct {
 	Projects map[string]Project
+	Commits  map[string]Commit
 }
 
 func NewMockDatabase() *MockDatabase {
 	return &MockDatabase{
 		Projects: make(map[string]Project),
+		Commits:  make(map[string]Commit),
 	}
+}
+
+// GetCommits implements Database.
+func (m *MockDatabase) GetCommits(id string) ([]Commit, error) {
+	commits := make([]Commit, 0)
+	for _, commit := range m.Commits {
+		if commit.Project == id {
+			commits = append(commits, commit)
+		}
+	}
+	sort.SliceStable(commits, func(i, j int) bool {
+		return commits[i].Date.After(commits[j].Date)
+	})
+	return commits, nil
 }
 
 // CheckConnection implements Database.
@@ -52,19 +68,41 @@ func (m *MockDatabase) BeginWork() (UnitOfWork, error) {
 }
 
 type MockUnitOfWork struct {
-	db      *MockDatabase
-	commits []func()
+	db             *MockDatabase
+	pendingActions []func()
+}
+
+// FindCommitForUpdate implements UnitOfWork.
+func (m *MockUnitOfWork) FindCommitForUpdate(id string) (*Commit, error) {
+	commit, exists := m.db.Commits[id]
+	if !exists {
+		return nil, fmt.Errorf("commit with id %s not found", id)
+	}
+	return &commit, nil
+}
+
+// SaveCommit implements UnitOfWork.
+func (m *MockUnitOfWork) SaveCommit(commit Commit) error {
+	m.pendingActions = append(m.pendingActions, func() {
+		m.db.Commits[commit.Hash] = commit
+	})
+	return nil
+}
+
+// WaitForProjectLock implements UnitOfWork.
+func (m *MockUnitOfWork) WaitForProjectLock(id string) error {
+	return nil
 }
 
 func (m *MockUnitOfWork) Commit() error {
-	for _, commit := range m.commits {
+	for _, commit := range m.pendingActions {
 		commit()
 	}
 	return nil
 }
 
 func (m *MockUnitOfWork) Rollback() error {
-	m.commits = nil
+	m.pendingActions = nil
 	return nil
 }
 
@@ -73,7 +111,7 @@ func (m *MockUnitOfWork) FindProjectForUpdate(id string) (*Project, error) {
 }
 
 func (m *MockUnitOfWork) SaveProject(project Project) error {
-	m.commits = append(m.commits, func() {
+	m.pendingActions = append(m.pendingActions, func() {
 		m.db.Projects[project.ID] = project
 	})
 	return nil

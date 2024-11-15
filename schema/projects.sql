@@ -1,5 +1,0 @@
-CREATE TABLE IF NOT EXISTS projects (
-    id TEXT PRIMARY KEY NOT NULL,
-    name TEXT NOT NULL
-);
-

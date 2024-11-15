@@ -19,7 +19,7 @@ async function ezcdCli(args: string) {
         body: `stdout: ${stdout}\n\nstderr: ${stderr}`,
       });
 
-      return stdout;
+      return stdout.trimEnd();
     } catch (error) {
       throw new Error(`Failed to run ezcd-cli. EZCD_DATABASE_URL was '${process.env.EZCD_DATABASE_URL}' error:${error} stdout:${error.stdout} stderr:${error.stderr}`);
     }
@@ -36,8 +36,65 @@ export default class CLIDriver {
     return await ezcdCli(`create-project ${project}`);
   }
 
-  commitPhaseStarted = async (projectId: string, commitMessage: string) => {
-    return await ezcdCli(`commit ${projectId} "${commitMessage}"`);
+  commitStageStarted = async (action: {
+    projectId: string,
+    commitHash: string,
+    commitMessage: string,
+    commitAuthorName: string,
+    commitAuthorEmail: string,
+    commitDate: Date,
+  }) => {
+    return await ezcdCli(`commit-stage-started --project ${action.projectId} --hash "${action.commitHash}" --message "${action.commitMessage}" --author-name "${action.commitAuthorName}" --author-email "${action.commitAuthorEmail}" --date "${action.commitDate.toISOString()}"`);
   }
 
+  commitStagePassed = async (action: {
+    projectId: string,
+    commitHash: string,
+  }) => {
+    return await ezcdCli(`commit-stage-passed --project ${action.projectId} --hash "${action.commitHash}"`);
+  }
+
+  commitStageFailed = async (action: {
+    projectId: string,
+    commitHash: string,
+  }) => {
+    return await ezcdCli(`commit-stage-failed --project ${action.projectId} --hash "${action.commitHash}"`);
+  }
+
+  acceptanceStageStarted = async (action: {
+    projectId: string,
+    commitHash: string,
+  }) => {
+    return await ezcdCli(`acceptance-stage-started --project ${action.projectId} --hash "${action.commitHash}"`);
+  }
+  acceptanceStagePassed = async (action: {
+    projectId: string,
+    commitHash: string,
+  }) => {
+    return await ezcdCli(`acceptance-stage-passed --project ${action.projectId} --hash "${action.commitHash}"`);
+  }
+  acceptanceStageFailed = async (action: {
+    projectId: string,
+    commitHash: string,
+  }) => {
+    return await ezcdCli(`acceptance-stage-failed --project ${action.projectId} --hash "${action.commitHash}"`);
+  }
+  deployStarted = async (action: {
+    projectId: string,
+    commitHash: string,
+  }) => {
+    return await ezcdCli(`deploy-started --project ${action.projectId} --hash "${action.commitHash}"`);
+  }
+  deployPassed = async (action: {
+    projectId: string,
+    commitHash: string,
+  }) => {
+    return await ezcdCli(`deploy-passed --project ${action.projectId} --hash "${action.commitHash}"`);
+  }
+  deployFailed = async (action: {
+    projectId: string,
+    commitHash: string,
+  }) => {
+    return await ezcdCli(`deploy-failed --project ${action.projectId} --hash "${action.commitHash}"`);
+  }
 }

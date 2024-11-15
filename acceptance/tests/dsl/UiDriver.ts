@@ -34,4 +34,30 @@ export default class UiDriver {
 
         return commitTexts;
     }
+
+    async getProjectCommit(params: { projectId: string, commitHash: string }) {
+        await this.page.goto(`/project/${params.projectId}`);
+
+        // wait for the commits to load
+        await this.page.waitForSelector(`[data-commits=loaded]`);
+
+        // find the element with the data tag [commit-hash="commitHash"]
+        const commit = await this.page.$(`[data-commit="${params.commitHash}"]`);
+
+        if (!commit) {
+            throw new Error(`Commit with hash ${params.commitHash} not found`);
+        }
+
+        const elements = {
+            commitMessage: await commit.$("[data-label=commitMessage]"),
+            commitAuthor: await commit.$("[data-label=commitAuthor]"),
+            commitStageStatus: await commit.$("[data-label=commitStageStatus]"),
+        }
+
+        return {
+            commitMessage: await elements.commitMessage?.innerText(),
+            commitAuthor: await elements.commitAuthor?.innerText(),
+            commitStageStatus: await elements.commitStageStatus?.getAttribute("data-value"),
+        }
+    }
 }

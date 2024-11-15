@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/ezcdlabs/ezcd/cmd/server/public"
 	"github.com/ezcdlabs/ezcd/pkg/ezcd"
@@ -36,6 +37,32 @@ func mapToAnnotatedProjects(ps []ezcd.Project) []Project {
 		projects[i] = mapToAnnotatedProject(p)
 	}
 	return projects
+}
+
+type Commit struct {
+	Hash        string    `json:"hash"`
+	AuthorName  string    `json:"authorName"`
+	AuthorEmail string    `json:"authorEmail"`
+	Message     string    `json:"message"`
+	Date        time.Time `json:"date"`
+}
+
+func mapToAnnotatedCommit(c ezcd.Commit) Commit {
+	return Commit{
+		Hash:        c.Hash,
+		Message:     c.Message,
+		Date:        c.Date,
+		AuthorName:  c.AuthorName,
+		AuthorEmail: c.AuthorEmail,
+	}
+}
+
+func mapToAnnotatedCommits(cs []ezcd.Commit) []Commit {
+	commits := make([]Commit, len(cs))
+	for i, c := range cs {
+		commits[i] = mapToAnnotatedCommit(c)
+	}
+	return commits
 }
 
 func main() {
@@ -86,8 +113,27 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/api/projects/", func(w http.ResponseWriter, r *http.Request) {
-		projectID := strings.TrimPrefix(r.URL.Path, "/api/projects/")
+	http.HandleFunc("/api/projects/{projectID}/commits", func(w http.ResponseWriter, r *http.Request) {
+		projectID := r.PathValue("projectID")
+		if projectID == "" {
+			http.Error(w, "Project ID is required", http.StatusBadRequest)
+			return
+		}
+
+		commits, err := ezcdService.GetCommits(projectID)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error fetching commits: %v", err), http.StatusInternalServerError)
+			return
+		}
+		annnotatedCommits := mapToAnnotatedCommits(commits)
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(annnotatedCommits); err != nil {
+			http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
+		}
+	})
+
+	http.HandleFunc("/api/projects/{projectID}", func(w http.ResponseWriter, r *http.Request) {
+		projectID := r.PathValue("projectID")
 		if projectID == "" {
 			http.Error(w, "Project ID is required", http.StatusBadRequest)
 			return
