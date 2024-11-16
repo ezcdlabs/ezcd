@@ -73,10 +73,13 @@ type MockUnitOfWork struct {
 }
 
 // FindCommitForUpdate implements UnitOfWork.
-func (m *MockUnitOfWork) FindCommitForUpdate(id string) (*Commit, error) {
-	commit, exists := m.db.Commits[id]
+func (m *MockUnitOfWork) FindCommitForUpdate(projectId string, hash string) (*Commit, error) {
+	commit, exists := m.db.Commits[hash]
 	if !exists {
-		return nil, fmt.Errorf("commit with id %s not found", id)
+		return nil, fmt.Errorf("commit with id %s not found", hash)
+	}
+	if commit.Project != projectId {
+		return nil, fmt.Errorf("commit with id %s does not belong to project %s", hash, projectId)
 	}
 	return &commit, nil
 }

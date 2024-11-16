@@ -40,20 +40,26 @@ func mapToAnnotatedProjects(ps []ezcd.Project) []Project {
 }
 
 type Commit struct {
-	Hash        string    `json:"hash"`
-	AuthorName  string    `json:"authorName"`
-	AuthorEmail string    `json:"authorEmail"`
-	Message     string    `json:"message"`
-	Date        time.Time `json:"date"`
+	Hash                   string     `json:"hash"`
+	AuthorName             string     `json:"authorName"`
+	AuthorEmail            string     `json:"authorEmail"`
+	Message                string     `json:"message"`
+	Date                   time.Time  `json:"date"`
+	CommitStageStartedAt   *time.Time `json:"commitStageStartedAt"`
+	CommitStageCompletedAt *time.Time `json:"commitStageCompletedAt"`
+	CommitStageStatus      string     `json:"commitStageStatus"`
 }
 
 func mapToAnnotatedCommit(c ezcd.Commit) Commit {
 	return Commit{
-		Hash:        c.Hash,
-		Message:     c.Message,
-		Date:        c.Date,
-		AuthorName:  c.AuthorName,
-		AuthorEmail: c.AuthorEmail,
+		Hash:                   c.Hash,
+		Message:                c.Message,
+		Date:                   c.Date,
+		AuthorName:             c.AuthorName,
+		AuthorEmail:            c.AuthorEmail,
+		CommitStageStartedAt:   c.CommitStageStartedAt,
+		CommitStageCompletedAt: c.CommitStageCompletedAt,
+		CommitStageStatus:      c.CommitStageStatus.String(),
 	}
 }
 

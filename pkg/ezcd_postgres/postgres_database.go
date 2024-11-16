@@ -27,7 +27,17 @@ func (p *PostgresDatabase) GetCommits(id string) ([]ezcd.Commit, error) {
 	}
 	defer conn.Close()
 
-	rows, err := conn.QueryContext(context.Background(), `SELECT commit_hash, commit_author_name, commit_author_email, commit_message, commit_date FROM commits WHERE project_id = $1`, id)
+	rows, err := conn.QueryContext(context.Background(), `
+	SELECT 
+		commit_hash,
+		commit_author_name,
+		commit_author_email,
+		commit_message,
+		commit_date,
+		commit_stage_started_at,
+		commit_stage_completed_at,
+		commit_stage_status
+	FROM commits WHERE project_id = $1`, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query commits from the database: %w", err)
 	}
@@ -36,7 +46,17 @@ func (p *PostgresDatabase) GetCommits(id string) ([]ezcd.Commit, error) {
 	var commits []ezcd.Commit
 	for rows.Next() {
 		var commit ezcd.Commit
-		if err := rows.Scan(&commit.Hash, &commit.AuthorName, &commit.AuthorEmail, &commit.Message, &commit.Date); err != nil {
+
+		if err := rows.Scan(
+			&commit.Hash,
+			&commit.AuthorName,
+			&commit.AuthorEmail,
+			&commit.Message,
+			&commit.Date,
+			&commit.CommitStageStartedAt,
+			&commit.CommitStageCompletedAt,
+			&commit.CommitStageStatus,
+		); err != nil {
 			return nil, fmt.Errorf("failed to scan commit: %w", err)
 		}
 		commits = append(commits, commit)
@@ -54,11 +74,35 @@ type PostgresUnitOfWork struct {
 }
 
 // FindCommitForUpdate implements ezcd.UnitOfWork.
-func (u *PostgresUnitOfWork) FindCommitForUpdate(id string) (*ezcd.Commit, error) {
-	row := u.tx.QueryRowContext(context.Background(), `SELECT commit_hash, commit_author_name, commit_author_email, commit_message, commit_date FROM commits WHERE project_id = $1 FOR UPDATE`, id)
+func (u *PostgresUnitOfWork) FindCommitForUpdate(projectId string, hash string) (*ezcd.Commit, error) {
+	row := u.tx.QueryRowContext(context.Background(), `
+	SELECT 
+		commit_hash,
+		commit_author_name,
+		commit_author_email,
+		commit_message,
+		commit_date,
+		commit_stage_started_at,
+		commit_stage_completed_at,
+		commit_stage_status
+	FROM commits 
+	WHERE 
+		project_id = $1 AND
+		commit_hash = $2
+	FOR UPDATE`,
+		projectId, hash)
 
 	var commit ezcd.Commit
-	if err := row.Scan(&commit.Hash, &commit.AuthorName, &commit.AuthorEmail, &commit.Message, &commit.Date); err != nil {
+	if err := row.Scan(
+		&commit.Hash,
+		&commit.AuthorName,
+		&commit.AuthorEmail,
+		&commit.Message,
+		&commit.Date,
+		&commit.CommitStageStartedAt,
+		&commit.CommitStageCompletedAt,
+		&commit.CommitStageStatus,
+	); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("commit not found: %w", err)
 		}
@@ -71,14 +115,36 @@ func (u *PostgresUnitOfWork) FindCommitForUpdate(id string) (*ezcd.Commit, error
 // SaveCommit implements ezcd.UnitOfWork.
 func (u *PostgresUnitOfWork) SaveCommit(commit ezcd.Commit) error {
 	_, err := u.tx.ExecContext(context.Background(), `
-	INSERT INTO commits (commit_hash, commit_author_name, commit_author_email, commit_message, commit_date, project_id) 
-	VALUES ($1, $2, $3, $4, $5, $6)
+	INSERT INTO commits (
+		project_id,
+		commit_hash,
+		commit_author_name,
+		commit_author_email,
+		commit_message,
+		commit_date,
+		commit_stage_started_at,
+		commit_stage_completed_at,
+		commit_stage_status
+	) 
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 	ON CONFLICT (commit_hash) DO UPDATE 
 	SET commit_author_name = EXCLUDED.commit_author_name,
 		commit_author_email = EXCLUDED.commit_author_email,
 		commit_message = EXCLUDED.commit_message,
-		commit_date = EXCLUDED.commit_date`,
-		commit.Hash, commit.AuthorName, commit.AuthorEmail, commit.Message, commit.Date, commit.Project)
+		commit_date = EXCLUDED.commit_date,
+		commit_stage_started_at = EXCLUDED.commit_stage_started_at,
+		commit_stage_completed_at = EXCLUDED.commit_stage_completed_at,
+		commit_stage_status = EXCLUDED.commit_stage_status`,
+
+		commit.Project,
+		commit.Hash,
+		commit.AuthorName,
+		commit.AuthorEmail,
+		commit.Message,
+		commit.Date,
+		commit.CommitStageStartedAt,
+		commit.CommitStageCompletedAt,
+		commit.CommitStageStatus)
 	if err != nil {
 		return fmt.Errorf("failed to save commit: %w", err)
 	}

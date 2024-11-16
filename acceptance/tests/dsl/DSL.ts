@@ -30,7 +30,8 @@ export default class DSL {
         },
 
         createProject: async (project: string) => {
-            const projectId = await this.cliDriver.createProject(randomSuffix(project));
+            const projectId = randomSuffix(project)
+            await this.cliDriver.createProject(projectId);
             this.projects.set(project, projectId);
         },
 
@@ -143,7 +144,7 @@ export default class DSL {
             }
             const actual = await this.uiDriver.getProject(projectId);
 
-            expect(actual).toEqual(project);
+            expect(actual).toEqual(projectId);
         },
 
         checkCommit: async (params: { project: string, commitMessage: string, commitStage?: string }) => {

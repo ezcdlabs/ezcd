@@ -1,5 +1,7 @@
 package ezcd
 
+import "time"
+
 // Database interface defines the methods for interacting with the database.
 type Database interface {
 	CheckConnection() error
@@ -12,6 +14,10 @@ type Database interface {
 	BeginWork() (UnitOfWork, error)
 }
 
+type Clock interface {
+	Now() *time.Time
+}
+
 // UnitOfWork interface defines the methods for managing a unit of work (transaction).
 type UnitOfWork interface {
 	Commit() error
@@ -22,12 +28,16 @@ type UnitOfWork interface {
 
 	WaitForProjectLock(id string) error
 
-	FindCommitForUpdate(id string) (*Commit, error)
+	FindCommitForUpdate(projectId string, hash string) (*Commit, error)
 	SaveCommit(commit Commit) error
 }
 
 // Ezcd interface defines the service methods for the Ezcd application.
 type Ezcd interface {
+
+	// for testing, we can override the clock that is used to get the current time
+	SetClock(clock Clock)
+
 	// health.go
 	CheckHealth() error
 
@@ -38,14 +48,16 @@ type Ezcd interface {
 
 	// commits.go
 	GetCommits(id string) ([]Commit, error)
-	CommitPhaseStarted(commitData CommitData) (*Commit, error)
+	CommitStageStarted(projectId string, commitData CommitData) error
+	CommitStagePassed(projectId string, hash string) error
 }
 
 type EzcdService struct {
-	db Database
+	db    Database
+	clock Clock
 }
 
 // NewEzcdService initializes a new EzcdService with a database dependency.
 func NewEzcdService(db Database) Ezcd {
-	return &EzcdService{db: db}
+	return &EzcdService{db: db, clock: RealClock{}}
 }

@@ -14,6 +14,10 @@ interface Commit {
   authorName: string;
   authorEmail: string;
   date: string;
+
+  commitStageStatus: string;
+  commitStageStartedAt: string;
+  commitStageCompletedAt: string;
 }
 
 const fetchProject = async (id: string): Promise<Project> => {
@@ -50,13 +54,20 @@ function Commits(props: { projectId: string }) {
         <For each={commits()}>
           {commit => (
             <li data-commit={commit.hash}>
+              Hash: <span data-label="commitHash">{commit.hash}</span>
+              &nbsp;
               Author: <span data-label="commitAuthorName">{commit.authorName}</span>(<span data-label="commitAuthorEmail">{commit.authorEmail}</span>)
               &nbsp;
               Message: <span data-label="commitMessage">{commit.message}</span>
               &nbsp;
               Message: <span data-label="commitDate">{commit.date}</span>
               &nbsp;
-              Status: <span data-label="commitStageStatus" data-value="unimplemented">UNIMPLEMENTED</span>
+              <br />
+              Commit Stage: <span data-label="commitStageStatus" data-value={commit.commitStageStatus}>{commit.commitStageStatus}</span>
+              &nbsp;
+              Start: <span data-label="commitStageStartedAt" data-value={commit.commitStageStartedAt}>{commit.commitStageStartedAt}</span>
+              &nbsp;
+              Completed: <span data-label="commitStageCompletedAt" data-value={commit.commitStageCompletedAt}>{commit.commitStageCompletedAt}</span>
             </li>
           )}
         </For>

@@ -11,16 +11,19 @@ CREATE TABLE IF NOT EXISTS commits (
     commit_author_email TEXT NOT NULL,
     commit_message TEXT NOT NULL,
     commit_date TIMESTAMPTZ NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 
-    -- commit_phase_started TIMESTAMPTZ,
-    -- commit_phase_completed TIMESTAMPTZ,
-    -- commit_phase_status TEXT CHECK(commit_phase_status IN ('pass', 'fail')),
+    commit_stage_started_at TIMESTAMPTZ,
+    commit_stage_completed_at TIMESTAMPTZ,
+    commit_stage_status TEXT CHECK(commit_stage_status IN ('started', 'passed', 'failed')) NOT NULL,
     
-    -- acceptance_phase_started TIMESTAMPTZ,
-    -- acceptance_phase_completed TIMESTAMPTZ,
-    -- acceptance_phase_status TEXT CHECK(acceptance_phase_status IN ('pass', 'fail')),
+    -- acceptance_stage_started TIMESTAMPTZ,
+    -- acceptance_stage_completed TIMESTAMPTZ,
+    -- acceptance_stage_status TEXT CHECK(acceptance_stage_status IN ('none', 'started', 'passed', 'failed')) NOT NULL,
     
-    -- released_to_production TIMESTAMPTZ,
+    -- deploy_started_at TIMESTAMPTZ,
+    -- deploy_completed_at TIMESTAMPTZ,
+    -- deploy_status TEXT CHECK(deploy_status IN ('none', 'started', 'passed', 'failed')) NOT NULL,
     -- ltfc_completed TIMESTAMPTZ
+
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );

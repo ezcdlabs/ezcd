@@ -4,7 +4,6 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -59,7 +58,6 @@ to quickly create a Cobra application.`,
 		}
 
 		commitData := ezcd.CommitData{
-			Project:     project,
 			Hash:        hash,
 			AuthorName:  authorName,
 			AuthorEmail: authorEmail,
@@ -68,13 +66,13 @@ to quickly create a Cobra application.`,
 		}
 
 		ezcdService := service.Get()
-		commit, err := ezcdService.CommitPhaseStarted(commitData)
+		err = ezcdService.CommitStageStarted(project, commitData)
 
 		if err != nil {
-			log.Fatalf("Failed to create project: %v\n", err)
+			log.Fatalf("Failed to add commit: %v\n", err)
 		}
 
-		fmt.Printf("%s\n", commit.Hash)
+		log.Printf("Commit added: %v\n", hash)
 	},
 }
 
