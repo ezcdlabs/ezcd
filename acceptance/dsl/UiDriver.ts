@@ -52,12 +52,14 @@ export default class UiDriver {
             commitMessage: await commit.$("[data-label=commitMessage]"),
             commitAuthor: await commit.$("[data-label=commitAuthor]"),
             commitStageStatus: await commit.$("[data-label=commitStageStatus]"),
+            acceptanceStageStatus: await commit.$("[data-label=acceptanceStageStatus]"),
         }
 
         return {
             commitMessage: await elements.commitMessage?.innerText(),
             commitAuthor: await elements.commitAuthor?.innerText(),
             commitStageStatus: await elements.commitStageStatus?.getAttribute("data-value"),
+            acceptanceStageStatus: await elements.acceptanceStageStatus?.getAttribute("data-value"),
         }
     }
 }

@@ -4,54 +4,47 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"os"
-
+	"github.com/ezcdlabs/ezcd/pkg/ezcd"
 	"github.com/spf13/cobra"
 )
 
-var Version = "warning: version not set"
+// define interface that loads the ezcd service
+type EzcdServiceLoader interface {
+	Load() (ezcd.Ezcd, error)
+}
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "ezcd",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
+func NewRootCmd(version string, serviceLoader EzcdServiceLoader) *cobra.Command {
+
+	// RootCmd represents the base command when called without any subcommands
+	rootCmd := &cobra.Command{
+		Use:   "ezcd-cli",
+		Short: "A CLI tool for reporting events from your CI/CD pipeline to ezCD",
+		Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
 
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	Run: func(cmd *cobra.Command, args []string) {
-		// if the version flag is set, print the version and exit
-		if cmd.Flag("version").Changed {
-			cmd.Println(Version)
-			os.Exit(0)
-		}
-
-		// otherwise, print the help message
-		cmd.Help()
-	},
-}
-
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
+		// Uncomment the following line if your bare application
+		// has an action associated with it:
+		Run: func(cmd *cobra.Command, args []string) {
+			// if the version flag is set, print the version and exit
+			if cmd.Flag("version").Changed {
+				cmd.Println(version)
+			} else {
+				cmd.Help()
+			}
+		},
 	}
-}
 
-func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.ezcd.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
+	// add flags
 	rootCmd.Flags().BoolP("version", "v", false, "Print the version")
+
+	// add sub commands
+	rootCmd.AddCommand(NewCreateProjectCommand(serviceLoader))
+	rootCmd.AddCommand(NewCommitStageStartedCommand(serviceLoader))
+	rootCmd.AddCommand(NewCommitStagePassedCommand(serviceLoader))
+	rootCmd.AddCommand(NewAcceptanceStageStartedCommand(serviceLoader))
+
+	return rootCmd
 }

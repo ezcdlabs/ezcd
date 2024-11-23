@@ -1,6 +1,7 @@
 package ezcd_test
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -8,9 +9,24 @@ import (
 	"github.com/ezcdlabs/ezcd/pkg/ezcd"
 )
 
+func TestShouldUseCorrectStatuses(t *testing.T) {
+	if ezcd.StatusStarted.String() != "started" {
+		t.Fatalf("expected started status to be 'started', got %s", ezcd.StatusStarted)
+	}
+	if ezcd.StatusNone.String() != "none" {
+		t.Fatalf("expected started status to be 'none', got %s", ezcd.StatusNone)
+	}
+	if ezcd.StatusPassed.String() != "passed" {
+		t.Fatalf("expected started status to be 'passed', got %s", ezcd.StatusPassed)
+	}
+	if ezcd.StatusFailed.String() != "failed" {
+		t.Fatalf("expected started status to be 'failed', got %s", ezcd.StatusFailed)
+	}
+}
+
 func TestShouldAddCommitToProject(t *testing.T) {
-	mockDB := ezcd.NewMockDatabase()
-	mockClock := ezcd.NewMockClock()
+	mockDB := newMockDatabase()
+	mockClock := newMockClock()
 	service := ezcd.NewEzcdService(mockDB)
 	service.SetClock(mockClock)
 
@@ -20,7 +36,7 @@ func TestShouldAddCommitToProject(t *testing.T) {
 	projectID := "test-id"
 	commitData := exampleCommitData("test commit", startTime)
 
-	mockClock.WaitUntil(pointA)
+	mockClock.waitUntil(pointA)
 
 	expectedCommit := ezcd.Commit{
 		Project:              projectID,
@@ -33,7 +49,7 @@ func TestShouldAddCommitToProject(t *testing.T) {
 		CommitStageStartedAt: &pointA,
 	}
 
-	_, err := service.CreateProject(projectID)
+	err := service.CreateProject(projectID)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -57,9 +73,75 @@ func TestShouldAddCommitToProject(t *testing.T) {
 	}
 }
 
+func TestShouldReturnErrWhenCommitCannotBeSaved(t *testing.T) {
+	mockDB := newMockDatabase()
+	mockClock := newMockClock()
+	service := ezcd.NewEzcdService(mockDB)
+
+	projectID := "test-id"
+	commitData := exampleCommitData("test commit", mockClock.CurrentTime)
+
+	err := service.CreateProject(projectID)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	mockDB.SaveCommitError = fmt.Errorf("failed to save commit")
+	// define error here
+	err = service.CommitStageStarted(projectID, commitData)
+
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+}
+
+func TestShouldReturnErrWhenBeginWorkFails(t *testing.T) {
+	mockDB := newMockDatabase()
+	mockClock := newMockClock()
+	service := ezcd.NewEzcdService(mockDB)
+
+	projectID := "test-id"
+	commitData := exampleCommitData("test commit", mockClock.CurrentTime)
+
+	err := service.CreateProject(projectID)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	mockDB.BeginWorkError = fmt.Errorf("failed to begin work")
+	// define error here
+	err = service.CommitStageStarted(projectID, commitData)
+
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+}
+
+func TestShouldReturnErrWhenTransactionFails(t *testing.T) {
+	mockDB := newMockDatabase()
+	mockClock := newMockClock()
+	service := ezcd.NewEzcdService(mockDB)
+
+	projectID := "test-id"
+	commitData := exampleCommitData("test commit", mockClock.CurrentTime)
+
+	err := service.CreateProject(projectID)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	mockDB.TransactionCommitError = fmt.Errorf("failed to commit db transaction")
+	// define error here
+	err = service.CommitStageStarted(projectID, commitData)
+
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+}
+
 func TestShouldAddCommitAndSetItToPassed(t *testing.T) {
-	mockDB := ezcd.NewMockDatabase()
-	mockClock := ezcd.NewMockClock()
+	mockDB := newMockDatabase()
+	mockClock := newMockClock()
 	service := ezcd.NewEzcdService(mockDB)
 	service.SetClock(mockClock)
 
@@ -71,11 +153,11 @@ func TestShouldAddCommitAndSetItToPassed(t *testing.T) {
 
 	commitData := exampleCommitData("test commit", startTime)
 
-	mockClock.WaitUntil(pointA)
+	mockClock.waitUntil(pointA)
 
 	service.CommitStageStarted("project1", commitData)
 
-	mockClock.WaitUntil(pointB)
+	mockClock.waitUntil(pointB)
 
 	err := service.CommitStagePassed("project1", commitData.Hash)
 
@@ -99,6 +181,78 @@ func TestShouldAddCommitAndSetItToPassed(t *testing.T) {
 
 	if *commits[0].CommitStageCompletedAt != pointB {
 		t.Fatalf("expected commit completed at %v, got %v", pointB, commits[0].CommitStageCompletedAt)
+	}
+}
+
+func TestShouldFailToPassCommitStageForCommitThatDoesNotExist(t *testing.T) {
+	mockDB := newMockDatabase()
+	service := ezcd.NewEzcdService(mockDB)
+
+	service.CreateProject("project1")
+
+	err := service.CommitStagePassed("project1", "non-existent-hash")
+
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+}
+
+func TestShouldFailToStartAcceptanceStageForCommitThatDoesNotExist(t *testing.T) {
+	mockDB := newMockDatabase()
+	service := ezcd.NewEzcdService(mockDB)
+
+	service.CreateProject("project1")
+
+	err := service.AcceptanceStageStarted("project1", "non-existent-hash")
+
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+}
+
+func TestShouldStartAcceptanceStage(t *testing.T) {
+	mockDB := newMockDatabase()
+	mockClock := newMockClock()
+	service := ezcd.NewEzcdService(mockDB)
+	service.SetClock(mockClock)
+
+	startTime := mockClock.CurrentTime
+	pointA := startTime.Add(time.Second * 10)
+	pointB := pointA.Add(time.Second * 10)
+
+	service.CreateProject("project1")
+
+	commitData := exampleCommitData("test commit", startTime)
+
+	mockClock.waitUntil(pointA)
+
+	service.CommitStageStarted("project1", commitData)
+	service.CommitStagePassed("project1", commitData.Hash)
+
+	mockClock.waitUntil(pointB)
+
+	err := service.AcceptanceStageStarted("project1", commitData.Hash)
+
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	commits, err := service.GetCommits("project1")
+
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(commits) != 1 {
+		t.Fatalf("expected 1 commit, got %d", len(commits))
+	}
+
+	if commits[0].AcceptanceStageStatus != ezcd.StatusStarted {
+		t.Fatalf("expected acceptance stage to be started, got %v", commits[0].AcceptanceStageStatus)
+	}
+
+	if *commits[0].AcceptanceStageStartedAt != pointB {
+		t.Fatalf("expected acceptance stage started at %v, got %v", pointB, commits[0].AcceptanceStageStartedAt)
 	}
 }
 

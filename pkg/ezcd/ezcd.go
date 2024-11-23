@@ -4,6 +4,7 @@ import "time"
 
 // Database interface defines the methods for interacting with the database.
 type Database interface {
+	GetInfo() string
 	CheckConnection() error
 	CheckProjectsTable() error
 
@@ -40,21 +41,28 @@ type Ezcd interface {
 
 	// health.go
 	CheckHealth() error
+	GetDatabaseInfo() string
 
 	// project.go
 	GetProject(id string) (*Project, error)
 	GetProjects() ([]Project, error)
-	CreateProject(name string) (*Project, error)
+	CreateProject(name string) error
 
 	// commits.go
 	GetCommits(id string) ([]Commit, error)
 	CommitStageStarted(projectId string, commitData CommitData) error
 	CommitStagePassed(projectId string, hash string) error
+
+	AcceptanceStageStarted(projectId string, hash string) error
 }
 
 type EzcdService struct {
 	db    Database
 	clock Clock
+}
+
+func (s *EzcdService) GetDatabaseInfo() string {
+	return s.db.GetInfo()
 }
 
 // NewEzcdService initializes a new EzcdService with a database dependency.

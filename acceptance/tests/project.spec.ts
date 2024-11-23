@@ -1,5 +1,5 @@
 import { test } from '@playwright/test';
-import DSL from './dsl/DSL';
+import DSL from '../dsl/DSL';
 
 test('should create new project', async ({ page }) => {
 

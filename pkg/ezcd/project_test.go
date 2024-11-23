@@ -1,13 +1,14 @@
 package ezcd_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/ezcdlabs/ezcd/pkg/ezcd"
 )
 
 func TestGetProject(t *testing.T) {
-	mockDB := ezcd.NewMockDatabase()
+	mockDB := newMockDatabase()
 	service := ezcd.NewEzcdService(mockDB)
 
 	mockDB.Projects["test-id"] = ezcd.Project{
@@ -16,7 +17,6 @@ func TestGetProject(t *testing.T) {
 
 	projectID := "test-id"
 	project, err := service.GetProject(projectID)
-
 
 	if err != nil {
 		t.Errorf("expected no error, got %v", err)
@@ -29,7 +29,7 @@ func TestGetProject(t *testing.T) {
 	}
 }
 func TestGetProjects(t *testing.T) {
-	mockDB := ezcd.NewMockDatabase()
+	mockDB := newMockDatabase()
 	service := ezcd.NewEzcdService(mockDB)
 
 	mockDB.Projects["test-id-1"] = ezcd.Project{
@@ -52,11 +52,16 @@ func TestGetProjects(t *testing.T) {
 	}
 }
 func TestCreateProject(t *testing.T) {
-	mockDB := ezcd.NewMockDatabase()
+	mockDB := newMockDatabase()
 	service := ezcd.NewEzcdService(mockDB)
 
 	projectName := "New Project"
-	project, err := service.CreateProject(projectName)
+	err := service.CreateProject(projectName)
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+	}
+
+	project, err := service.GetProject(projectName)
 
 	if err != nil {
 		t.Errorf("expected no error, got %v", err)
@@ -72,3 +77,15 @@ func TestCreateProject(t *testing.T) {
 	}
 }
 
+func TestCreateProjectFailsWhenDatabaseFails(t *testing.T) {
+	mockDB := newMockDatabase()
+	service := ezcd.NewEzcdService(mockDB)
+
+	mockDB.SaveProjectError = errors.New("failed to save project")
+
+	projectName := "New Project"
+	err := service.CreateProject(projectName)
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+}

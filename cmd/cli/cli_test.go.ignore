@@ -1,0 +1,95 @@
+package main_test
+
+import (
+	"bytes"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+var binaryName = "/tmp/ezcd_cli_for_testing"
+var coverageDir = "/tmp/ezcd_cli_integration_test_coverage"
+
+func TestMain(m *testing.M) {
+	// use os.exec/etc go build with coverage to create a binary we can call as an integration test
+	cmd := exec.Command("go", "build", "-cover", "-ldflags", "-X main.version=injectedVersion", "-o", binaryName, "./main.go")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		fmt.Printf("failed to build binary: %v", err)
+		os.Exit(1)
+	}
+
+	// make sure the coverage directory exists
+	err = os.MkdirAll(coverageDir, 0755)
+	if err != nil {
+		fmt.Printf("failed to create coverage directory: %v", err)
+		os.Exit(1)
+	}
+
+	exitCode := m.Run()
+
+	err = mergeCoverageData()
+	if err != nil {
+		fmt.Printf("failed to merge coverage data: %v", err)
+		os.Exit(1)
+	}
+
+	os.Remove(binaryName)
+
+	os.Exit(exitCode)
+}
+
+func TestShouldPrintVersion(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	cmd := exec.Command(binaryName, "--version")
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	cmd.Env = []string{"GOCOVERDIR=" + coverageDir}
+
+	// Run the command
+	err := cmd.Run()
+
+	t.Log(stdout.String())
+	t.Log(stderr.String())
+
+	// Verify the output and error
+	assert.NoError(t, err)
+	assert.Contains(t, stdout.String(), "injectedVersion")
+}
+
+func mergeCoverageData() error {
+	// Find all the integration test coverage files in the coverage directory
+	_, err := filepath.Glob(filepath.Join(coverageDir, "*.cov"))
+	if err != nil {
+		return fmt.Errorf("failed to find integration test coverage files: %v", err)
+	}
+
+	// get the coverage dir from the env
+	mainCoverageDir := os.Getenv("GOCOVERDIR")
+	mainCovFiles, err := filepath.Glob(filepath.Join(mainCoverageDir, "*.cov"))
+	if err != nil {
+		return fmt.Errorf("failed to find main coverage files: %v", err)
+	}
+	// if no files are found, error
+	if len(mainCovFiles) == 0 {
+		return fmt.Errorf("no main coverage files found")
+	}
+	return fmt.Errorf("main coverage files: %v", mainCovFiles)
+
+	// Merge the coverage files
+	cmd := exec.Command("go", "tool", "covdata", "merge", "-i", coverageDir+","+mainCoverageDir, "-o", mainCoverageDir)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		return fmt.Errorf("failed to merge coverage data: %v", err)
+	}
+
+	return nil
+}

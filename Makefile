@@ -2,6 +2,8 @@
 BINARY_CLI=ezcd-cli
 BINARY_SERVER=ezcd-server
 DIST_DIR=dist
+COVERAGE_FILE=coverage.out
+COVERAGE_HTML_DIR=coverage
 
 export EZCD_DATABASE_URL=postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}:5432/ezcd?sslmode=disable
 
@@ -15,7 +17,14 @@ install:
 
 # Run tests
 test:
-	go test ./...
+	go test -coverprofile=${COVERAGE_FILE} ./...
+
+coverage: test
+	mkdir -p $(COVERAGE_HTML_DIR)
+	go tool cover -html=$(COVERAGE_FILE) -o $(COVERAGE_HTML_DIR)/index.html
+
+serve-coverage: coverage
+	pnpm dlx serve $(COVERAGE_HTML_DIR)
 
 # Build CLI
 build-cli:
@@ -63,4 +72,4 @@ clean:
 	rm -rf $(DIST_DIR)
 
 # PHONY targets
-.PHONY: all install test build-cli build-server build clean dev-web dev-server acceptance db-reset db-migrate db-set-env
+.PHONY: all install test build-cli build-server build clean dev-web dev-server acceptance db-reset db-migrate db-set-envn coverage serve-coverage

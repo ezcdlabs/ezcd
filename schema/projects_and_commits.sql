@@ -14,11 +14,11 @@ CREATE TABLE IF NOT EXISTS commits (
 
     commit_stage_started_at TIMESTAMPTZ,
     commit_stage_completed_at TIMESTAMPTZ,
-    commit_stage_status TEXT CHECK(commit_stage_status IN ('started', 'passed', 'failed')) NOT NULL,
+    commit_stage_status TEXT CHECK(commit_stage_status IN ('started', 'passed', 'failed')) NOT NULL DEFAULT 'started',
     
-    -- acceptance_stage_started TIMESTAMPTZ,
-    -- acceptance_stage_completed TIMESTAMPTZ,
-    -- acceptance_stage_status TEXT CHECK(acceptance_stage_status IN ('none', 'started', 'passed', 'failed')) NOT NULL,
+    acceptance_stage_started_at TIMESTAMPTZ,
+    acceptance_stage_completed_at TIMESTAMPTZ,
+    acceptance_stage_status TEXT CHECK(acceptance_stage_status IN ('none', 'started', 'passed', 'failed')) NOT NULL DEFAULT 'none',
     
     -- deploy_started_at TIMESTAMPTZ,
     -- deploy_completed_at TIMESTAMPTZ,

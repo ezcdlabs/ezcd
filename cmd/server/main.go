@@ -40,26 +40,32 @@ func mapToAnnotatedProjects(ps []ezcd.Project) []Project {
 }
 
 type Commit struct {
-	Hash                   string     `json:"hash"`
-	AuthorName             string     `json:"authorName"`
-	AuthorEmail            string     `json:"authorEmail"`
-	Message                string     `json:"message"`
-	Date                   time.Time  `json:"date"`
-	CommitStageStartedAt   *time.Time `json:"commitStageStartedAt"`
-	CommitStageCompletedAt *time.Time `json:"commitStageCompletedAt"`
-	CommitStageStatus      string     `json:"commitStageStatus"`
+	Hash                       string     `json:"hash"`
+	AuthorName                 string     `json:"authorName"`
+	AuthorEmail                string     `json:"authorEmail"`
+	Message                    string     `json:"message"`
+	Date                       time.Time  `json:"date"`
+	CommitStageStartedAt       *time.Time `json:"commitStageStartedAt"`
+	CommitStageCompletedAt     *time.Time `json:"commitStageCompletedAt"`
+	CommitStageStatus          string     `json:"commitStageStatus"`
+	AcceptanceStageStartedAt   *time.Time `json:"acceptanceStageStartedAt"`
+	AcceptanceStageCompletedAt *time.Time `json:"acceptanceStageCompletedAt"`
+	AcceptanceStageStatus      string     `json:"acceptanceStageStatus"`
 }
 
 func mapToAnnotatedCommit(c ezcd.Commit) Commit {
 	return Commit{
-		Hash:                   c.Hash,
-		Message:                c.Message,
-		Date:                   c.Date,
-		AuthorName:             c.AuthorName,
-		AuthorEmail:            c.AuthorEmail,
-		CommitStageStartedAt:   c.CommitStageStartedAt,
-		CommitStageCompletedAt: c.CommitStageCompletedAt,
-		CommitStageStatus:      c.CommitStageStatus.String(),
+		Hash:                       c.Hash,
+		Message:                    c.Message,
+		Date:                       c.Date,
+		AuthorName:                 c.AuthorName,
+		AuthorEmail:                c.AuthorEmail,
+		CommitStageStartedAt:       c.CommitStageStartedAt,
+		CommitStageCompletedAt:     c.CommitStageCompletedAt,
+		CommitStageStatus:          c.CommitStageStatus.String(),
+		AcceptanceStageStartedAt:   c.AcceptanceStageStartedAt,
+		AcceptanceStageCompletedAt: c.AcceptanceStageCompletedAt,
+		AcceptanceStageStatus:      c.AcceptanceStageStatus.String(),
 	}
 }
 
