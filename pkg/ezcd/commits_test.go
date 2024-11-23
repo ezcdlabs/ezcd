@@ -266,6 +266,17 @@ func TestShouldFailToStartAcceptanceStageForCommitThatDoesNotExist(t *testing.T)
 	}
 }
 
+func TestShouldFailToPassAcceptanceStageForCommitThatDoesNotExist(t *testing.T) {
+	mockDB := newMockDatabase()
+	service := ezcd.NewEzcdService(mockDB)
+
+	service.CreateProject("project1")
+
+	err := service.AcceptanceStagePassed("project1", "non-existent-hash")
+
+	assert.Error(t, err)
+}
+
 func TestShouldStartAcceptanceStage(t *testing.T) {
 	mockDB := newMockDatabase()
 	mockClock := newMockClock()
@@ -310,6 +321,42 @@ func TestShouldStartAcceptanceStage(t *testing.T) {
 	if *commits[0].AcceptanceStageStartedAt != pointB {
 		t.Fatalf("expected acceptance stage started at %v, got %v", pointB, commits[0].AcceptanceStageStartedAt)
 	}
+}
+
+func TestShouldPassAcceptanceStage(t *testing.T) {
+	mockDB := newMockDatabase()
+	mockClock := newMockClock()
+	service := ezcd.NewEzcdService(mockDB)
+	service.SetClock(mockClock)
+
+	startTime := mockClock.CurrentTime
+	pointA := startTime.Add(time.Second * 10)
+	pointB := pointA.Add(time.Second * 10)
+	pointC := pointB.Add(time.Second * 10)
+
+	service.CreateProject("project1")
+
+	commitData := exampleCommitData("test commit", startTime)
+
+	mockClock.waitUntil(pointA)
+
+	service.CommitStageStarted("project1", commitData)
+	service.CommitStagePassed("project1", commitData.Hash)
+
+	mockClock.waitUntil(pointB)
+	err := service.AcceptanceStageStarted("project1", commitData.Hash)
+	assert.NoError(t, err)
+
+	mockClock.waitUntil(pointC)
+	err = service.AcceptanceStagePassed("project1", commitData.Hash)
+	assert.NoError(t, err)
+
+	commits, err := service.GetCommits("project1")
+	assert.NoError(t, err)
+
+	assert.Len(t, commits, 1)
+	assert.Equal(t, ezcd.StatusPassed, commits[0].AcceptanceStageStatus)
+	assert.Equal(t, pointC, *commits[0].AcceptanceStageCompletedAt)
 }
 
 func exampleCommitData(message string, date time.Time) ezcd.CommitData {

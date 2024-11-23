@@ -55,6 +55,7 @@ type Ezcd interface {
 	CommitStageFailed(projectId string, hash string) error
 
 	AcceptanceStageStarted(projectId string, hash string) error
+	AcceptanceStagePassed(projectId string, hash string) error
 }
 
 type EzcdService struct {
