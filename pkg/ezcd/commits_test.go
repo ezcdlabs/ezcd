@@ -39,14 +39,15 @@ func TestShouldAddCommitToProject(t *testing.T) {
 	mockClock.waitUntil(pointA)
 
 	expectedCommit := ezcd.Commit{
-		Project:              projectID,
-		Hash:                 commitData.Hash,
-		AuthorName:           commitData.AuthorName,
-		AuthorEmail:          commitData.AuthorEmail,
-		Message:              commitData.Message,
-		Date:                 commitData.Date,
-		CommitStageStatus:    ezcd.StatusStarted,
-		CommitStageStartedAt: &pointA,
+		Project:               projectID,
+		Hash:                  commitData.Hash,
+		AuthorName:            commitData.AuthorName,
+		AuthorEmail:           commitData.AuthorEmail,
+		Message:               commitData.Message,
+		Date:                  commitData.Date,
+		CommitStageStatus:     ezcd.StatusStarted,
+		CommitStageStartedAt:  &pointA,
+		AcceptanceStageStatus: ezcd.StatusNone,
 	}
 
 	err := service.CreateProject(projectID)
