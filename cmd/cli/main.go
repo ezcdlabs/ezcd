@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/ezcdlabs/ezcd/cmd/cli/cmd"
@@ -20,7 +21,7 @@ func main() {
 	err := command.Execute()
 
 	if err != nil {
-		os.Exit(1)
+		log.Fatalf("Failed to execute command: %v", err)
 	}
 }
 

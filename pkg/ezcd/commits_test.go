@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ezcdlabs/ezcd/pkg/ezcd"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestShouldUseCorrectStatuses(t *testing.T) {
@@ -185,6 +186,51 @@ func TestShouldAddCommitAndSetItToPassed(t *testing.T) {
 	}
 }
 
+func TestShouldAddCommitAndSetItToFailed(t *testing.T) {
+	mockDB := newMockDatabase()
+	mockClock := newMockClock()
+	service := ezcd.NewEzcdService(mockDB)
+	service.SetClock(mockClock)
+
+	startTime := mockClock.CurrentTime
+	pointA := startTime.Add(time.Second * 10)
+	pointB := pointA.Add(time.Second * 10)
+
+	service.CreateProject("project1")
+
+	commitData := exampleCommitData("test commit", startTime)
+
+	mockClock.waitUntil(pointA)
+
+	service.CommitStageStarted("project1", commitData)
+
+	mockClock.waitUntil(pointB)
+
+	err := service.CommitStageFailed("project1", commitData.Hash)
+
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	commits, err := service.GetCommits("project1")
+
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(commits) != 1 {
+		t.Fatalf("expected 1 commit, got %d", len(commits))
+	}
+
+	if commits[0].CommitStageStatus != ezcd.StatusFailed {
+		t.Fatalf("expected commit to be failed, got %v", commits[0].CommitStageStatus)
+	}
+
+	if *commits[0].CommitStageCompletedAt != pointB {
+		t.Fatalf("expected commit completed at %v, got %v", pointB, commits[0].CommitStageCompletedAt)
+	}
+}
+
 func TestShouldFailToPassCommitStageForCommitThatDoesNotExist(t *testing.T) {
 	mockDB := newMockDatabase()
 	service := ezcd.NewEzcdService(mockDB)
@@ -193,9 +239,18 @@ func TestShouldFailToPassCommitStageForCommitThatDoesNotExist(t *testing.T) {
 
 	err := service.CommitStagePassed("project1", "non-existent-hash")
 
-	if err == nil {
-		t.Fatalf("expected error, got nil")
-	}
+	assert.Error(t, err)
+}
+
+func TestShouldFailToFailCommitStageForCommitThatDoesNotExist(t *testing.T) {
+	mockDB := newMockDatabase()
+	service := ezcd.NewEzcdService(mockDB)
+
+	service.CreateProject("project1")
+
+	err := service.CommitStageFailed("project1", "non-existent-hash")
+
+	assert.Error(t, err)
 }
 
 func TestShouldFailToStartAcceptanceStageForCommitThatDoesNotExist(t *testing.T) {

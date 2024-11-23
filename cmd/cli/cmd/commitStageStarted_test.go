@@ -7,6 +7,7 @@ import (
 
 	"github.com/ezcdlabs/ezcd/cmd/cli/cmd"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestShouldFailCommitStageStartedWhenNoDatabaseUrlSet(t *testing.T) {
@@ -50,9 +51,7 @@ func TestShouldFailCommitStageStartedWhenServiceReturnsErr(t *testing.T) {
 	command.SetArgs([]string{"--project", "test", "--hash", "abc123", "--author-name", "John Doe", "--author-email", "john@example.com", "--message", "Initial commit", "--date", "2023-10-10T10:10:10Z"})
 	err := command.Execute()
 
-	if err == nil {
-		t.Fatalf("expected error, got nil")
-	}
+	require.Error(t, err)
 }
 
 func TestCommitStageStartedMissingProject(t *testing.T) {
@@ -62,7 +61,7 @@ func TestCommitStageStartedMissingProject(t *testing.T) {
 	x.SetArgs([]string{"--hash", "abc123", "--author-name", "John Doe", "--author-email", "john@example.com", "--message", "Initial commit", "--date", "2023-10-10T10:10:10Z"})
 	err := x.Execute()
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "project")
 }
 
@@ -73,7 +72,7 @@ func TestCommitStageStartedMissingHash(t *testing.T) {
 	x.SetArgs([]string{"--project", "test", "--author-name", "John Doe", "--author-email", "john@example.com", "--message", "Initial commit", "--date", "2023-10-10T10:10:10Z"})
 	err := x.Execute()
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "hash")
 }
 
@@ -84,7 +83,7 @@ func TestCommitStageStartedMissingAuthorName(t *testing.T) {
 	x.SetArgs([]string{"--project", "test", "--hash", "abc123", "--author-email", "john@example.com", "--message", "Initial commit", "--date", "2023-10-10T10:10:10Z"})
 	err := x.Execute()
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "author-name")
 }
 
@@ -95,7 +94,7 @@ func TestCommitStageStartedMissingAuthorEmail(t *testing.T) {
 	x.SetArgs([]string{"--project", "test", "--hash", "abc123", "--author-name", "John Doe", "--message", "Initial commit", "--date", "2023-10-10T10:10:10Z"})
 	err := x.Execute()
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "author-email")
 }
 
@@ -106,7 +105,7 @@ func TestCommitStageStartedMissingMessage(t *testing.T) {
 	x.SetArgs([]string{"--project", "test", "--hash", "abc123", "--author-name", "John Doe", "--author-email", "john@example.com", "--date", "2023-10-10T10:10:10Z"})
 	err := x.Execute()
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "message")
 }
 
@@ -117,7 +116,7 @@ func TestCommitStageStartedMissingDate(t *testing.T) {
 	x.SetArgs([]string{"--project", "test", "--hash", "abc123", "--author-name", "John Doe", "--author-email", "john@example.com", "--message", "Initial commit"})
 	err := x.Execute()
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "date")
 }
 
@@ -128,6 +127,6 @@ func TestCommitStageStartedInvalidDate(t *testing.T) {
 	x.SetArgs([]string{"--project", "test", "--hash", "abc123", "--author-name", "John Doe", "--author-email", "john@example.com", "--message", "Initial commit", "--date", "invaliddate"})
 	err := x.Execute()
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "date")
 }

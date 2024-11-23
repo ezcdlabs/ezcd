@@ -86,6 +86,24 @@ func (s *EzcdService) CommitStagePassed(projectId string, hash string) error {
 	})
 }
 
+// CommitStagePassed marks the commit stage as passed for a given project and commit hash.
+func (s *EzcdService) CommitStageFailed(projectId string, hash string) error {
+	return s.withUnitOfWork(func(uow UnitOfWork) error {
+		uow.WaitForProjectLock(projectId)
+
+		commit, err := uow.FindCommitForUpdate(projectId, hash)
+
+		if err != nil {
+			return fmt.Errorf("failed to find commit with hash %v: %w", hash, err)
+		}
+
+		commit.CommitStageCompletedAt = s.clock.Now()
+		commit.CommitStageStatus = StatusFailed
+
+		return s.saveCommit(uow, commit)
+	})
+}
+
 // AcceptanceStageStarted marks the acceptance stage as started for a given project and commit hash.
 func (s *EzcdService) AcceptanceStageStarted(projectId string, hash string) error {
 	return s.withUnitOfWork(func(uow UnitOfWork) error {

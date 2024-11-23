@@ -9,21 +9,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestShouldFailCommitStagePassedWhenNoDatabaseUrlSet(t *testing.T) {
+func TestShouldFailCommitStageFailedWhenNoDatabaseUrlSet(t *testing.T) {
 	mockServiceLoader := newMockServiceLoader()
 	mockServiceLoader.loadError = errors.New("failed to load service")
 
-	command := cmd.NewCommitStagePassedCommand(mockServiceLoader)
-	command.SetArgs([]string{"ezcd", "commit-stage-passed", "--project", "test", "--hash", "abc123"})
+	command := cmd.NewCommitStageFailedCommand(mockServiceLoader)
+	command.SetArgs([]string{"ezcd", "commit-stage-failed", "--project", "test", "--hash", "abc123"})
 	err := command.Execute()
 
 	assert.Error(t, err)
 }
 
-func TestShouldCallCommitStagePassed(t *testing.T) {
+func TestShouldCallCommitStageFailed(t *testing.T) {
 	mockServiceLoader := newMockServiceLoader()
 
-	command := cmd.NewCommitStagePassedCommand(mockServiceLoader)
+	command := cmd.NewCommitStageFailedCommand(mockServiceLoader)
 	command.SetArgs([]string{"--project", "test", "--hash", "abc123"})
 	err := command.Execute()
 
@@ -35,21 +35,21 @@ func TestShouldCallCommitStagePassed(t *testing.T) {
 	assert.Equal(t, "abc123", mockServiceLoader.mockEzcdService.commitHash)
 }
 
-func TestShouldFailCommitStagePassedWhenServiceReturnsErr(t *testing.T) {
+func TestShouldFailCommitStageFailedWhenServiceReturnsErr(t *testing.T) {
 	mockServiceLoader := newMockServiceLoader()
-	mockServiceLoader.mockEzcdService.commitStagePassedError = errors.New("test error")
+	mockServiceLoader.mockEzcdService.commitStageFailedError = errors.New("test error")
 
-	command := cmd.NewCommitStagePassedCommand(mockServiceLoader)
+	command := cmd.NewCommitStageFailedCommand(mockServiceLoader)
 	command.SetArgs([]string{"--project", "test", "--hash", "abc123"})
 	err := command.Execute()
 
 	assert.Error(t, err)
 }
 
-func TestCommitStagePassedMissingProject(t *testing.T) {
+func TestCommitStageFailedMissingProject(t *testing.T) {
 	mockServiceLoader := newMockServiceLoader()
 
-	command := cmd.NewCommitStagePassedCommand(mockServiceLoader)
+	command := cmd.NewCommitStageFailedCommand(mockServiceLoader)
 	command.SetArgs([]string{"--hash", "abc123"})
 	err := command.Execute()
 
@@ -57,10 +57,10 @@ func TestCommitStagePassedMissingProject(t *testing.T) {
 	assert.Contains(t, err.Error(), "project")
 }
 
-func TestCommitStagePassedMissingHash(t *testing.T) {
+func TestCommitStageFailedMissingHash(t *testing.T) {
 	mockServiceLoader := newMockServiceLoader()
 
-	command := cmd.NewCommitStagePassedCommand(mockServiceLoader)
+	command := cmd.NewCommitStageFailedCommand(mockServiceLoader)
 	command.SetArgs([]string{"--project", "test"})
 	err := command.Execute()
 

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ezcdlabs/ezcd/cmd/cli/cmd"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestShouldFailCreateProjectWhenNoDatabaseUrlSet(t *testing.T) {
@@ -15,9 +16,7 @@ func TestShouldFailCreateProjectWhenNoDatabaseUrlSet(t *testing.T) {
 	command.SetArgs([]string{"test"})
 	err := command.Execute()
 
-	if err == nil {
-		t.Fatalf("expected error, got nil")
-	}
+	assert.Error(t, err)
 }
 
 func TestShouldCallCreateProject(t *testing.T) {
@@ -28,13 +27,9 @@ func TestShouldCallCreateProject(t *testing.T) {
 	command.SetArgs([]string{"test"})
 	err := command.Execute()
 
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-
-	if mockService.projectName != "test" {
-		t.Fatalf("expected project name test, got %v", mockService.projectName)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, "test", mockService.projectName)
+	assert.Equal(t, "CreateProject", mockService.methodCalled)
 }
 
 func TestShouldFailCreateProjectWhenServiceReturnsErr(t *testing.T) {
@@ -47,7 +42,5 @@ func TestShouldFailCreateProjectWhenServiceReturnsErr(t *testing.T) {
 	command.SetArgs([]string{"test"})
 	err := command.Execute()
 
-	if err == nil {
-		t.Fatalf("expected error, got nil")
-	}
+	assert.Error(t, err)
 }

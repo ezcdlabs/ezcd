@@ -44,6 +44,7 @@ to quickly create a Cobra application.`,
 	rootCmd.AddCommand(NewCreateProjectCommand(serviceLoader))
 	rootCmd.AddCommand(NewCommitStageStartedCommand(serviceLoader))
 	rootCmd.AddCommand(NewCommitStagePassedCommand(serviceLoader))
+	rootCmd.AddCommand(NewCommitStageFailedCommand(serviceLoader))
 	rootCmd.AddCommand(NewAcceptanceStageStartedCommand(serviceLoader))
 
 	return rootCmd

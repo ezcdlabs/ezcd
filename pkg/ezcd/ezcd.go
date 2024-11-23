@@ -52,6 +52,7 @@ type Ezcd interface {
 	GetCommits(id string) ([]Commit, error)
 	CommitStageStarted(projectId string, commitData CommitData) error
 	CommitStagePassed(projectId string, hash string) error
+	CommitStageFailed(projectId string, hash string) error
 
 	AcceptanceStageStarted(projectId string, hash string) error
 }

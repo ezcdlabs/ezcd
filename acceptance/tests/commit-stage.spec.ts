@@ -38,3 +38,14 @@ test('should show only the passed commit as passed the commit stage', async ({ p
     await dsl.ui.checkCommit({ project: 'project1', commitMessage: 'First commit', commitStage: 'passed' });
     await dsl.ui.checkCommit({ project: 'project1', commitMessage: 'Second commit', commitStage: 'started' });
 });
+
+test('should show commit as failed the commit stage', async ({ page }) => {
+    const dsl = new DSL(page);
+
+    await dsl.cli.createProject('project1');
+    await dsl.cli.commitStageStarted({ project: 'project1', commitMessage: 'First commit' });
+
+    await dsl.cli.commitStageFailed({ project: 'project1', commitMessage: 'First commit' });
+
+    await dsl.ui.checkCommit({ project: 'project1', commitMessage: 'First commit', commitStage: 'failed' });
+});
