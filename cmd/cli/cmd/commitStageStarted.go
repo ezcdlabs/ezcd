@@ -24,15 +24,13 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			project, err := cmd.Flags().GetString("project")
 			if err != nil || project == "" {
 				return fmt.Errorf("failed to get 'project' flag: %v", err)
 			}
 			hash, err := cmd.Flags().GetString("hash")
 			if err != nil || hash == "" {
-				// why is this line not covered? I can see this error in the test output
 				return fmt.Errorf("failed to get 'hash' flag: %v", err)
 			}
 			authorName, err := cmd.Flags().GetString("author-name")
@@ -51,8 +49,17 @@ to quickly create a Cobra application.`,
 			if err != nil || dateString == "" {
 				return fmt.Errorf("failed to get 'date' flag: %v", err)
 			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			project, _ := cmd.Flags().GetString("project")
+			hash, _ := cmd.Flags().GetString("hash")
+			authorName, _ := cmd.Flags().GetString("author-name")
+			authorEmail, _ := cmd.Flags().GetString("author-email")
+			message, _ := cmd.Flags().GetString("message")
+			dateString, _ := cmd.Flags().GetString("date")
 			var date time.Time
-			date, err = time.Parse(time.RFC3339, dateString)
+			date, err := time.Parse(time.RFC3339, dateString)
 			if err != nil {
 				date, err = time.Parse(time.DateTime, dateString)
 			}

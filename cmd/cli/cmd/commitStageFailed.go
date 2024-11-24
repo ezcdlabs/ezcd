@@ -21,8 +21,7 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			project, err := cmd.Flags().GetString("project")
 			if err != nil || project == "" {
 				return fmt.Errorf("failed to get 'project' flag: %v", err)
@@ -31,6 +30,12 @@ to quickly create a Cobra application.`,
 			if err != nil || hash == "" {
 				return fmt.Errorf("failed to get 'hash' flag: %v", err)
 			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			project, _ := cmd.Flags().GetString("project")
+			hash, _ := cmd.Flags().GetString("hash")
+			cmd.SilenceUsage = true
 
 			ezcdService, err := serviceLoader.Load()
 			if err != nil {
@@ -39,6 +44,7 @@ to quickly create a Cobra application.`,
 			err = ezcdService.CommitStageFailed(project, hash)
 
 			if err != nil {
+
 				return fmt.Errorf("failed to set commit stage as failed: %v", err)
 			}
 

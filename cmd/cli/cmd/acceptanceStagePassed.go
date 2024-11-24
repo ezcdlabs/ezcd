@@ -20,8 +20,7 @@ func NewAcceptanceStagePassedCommand(serviceLoader EzcdServiceLoader) *cobra.Com
 	Cobra is a CLI library for Go that empowers applications.
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			project, err := cmd.Flags().GetString("project")
 			if err != nil || project == "" {
 				return fmt.Errorf("failed to get 'project' flag: %v", err)
@@ -30,13 +29,19 @@ func NewAcceptanceStagePassedCommand(serviceLoader EzcdServiceLoader) *cobra.Com
 			if err != nil || hash == "" {
 				return fmt.Errorf("failed to get 'hash' flag: %v", err)
 			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			project, _ := cmd.Flags().GetString("project")
+			hash, _ := cmd.Flags().GetString("hash")
+			cmd.SilenceUsage = true
 
 			ezcdService, err := serviceLoader.Load()
 			if err != nil {
 				return fmt.Errorf("failed to get ezcd service: %v", err)
 			}
 
-			err = ezcdService.AcceptanceStagePassed(project, hash) //AcceptanceStagePassed(project, hash)
+			err = ezcdService.AcceptanceStagePassed(project, hash)
 
 			if err != nil {
 				return fmt.Errorf("failed to set acceptance stage as passed: %v   %v", err, project)
