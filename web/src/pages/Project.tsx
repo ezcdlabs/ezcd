@@ -22,6 +22,10 @@ interface Commit {
   acceptanceStageStatus: string;
   acceptanceStageStartedAt: string;
   acceptanceStageCompletedAt: string;
+
+  deployStatus: string;
+  deployStartedAt: string;
+  deployCompletedAt: string;
 }
 
 const fetchProject = async (id: string): Promise<Project> => {
@@ -78,6 +82,12 @@ function Commits(props: { projectId: string }) {
               Start: <span data-label="acceptanceStageStartedAt" data-value={commit.acceptanceStageStartedAt}>{commit.acceptanceStageStartedAt}</span>
               &nbsp;
               Completed: <span data-label="acceptanceStageCompletedAt" data-value={commit.acceptanceStageCompletedAt}>{commit.acceptanceStageCompletedAt}</span>
+              <br />
+              Deploy: <span data-label="deployStatus" data-value={commit.deployStatus}>{commit.deployStatus}</span>
+              &nbsp;
+              Start: <span data-label="deployStartedAt" data-value={commit.deployStartedAt}>{commit.deployStartedAt}</span>
+              &nbsp;
+              Completed: <span data-label="deployCompletedAt" data-value={commit.deployCompletedAt}>{commit.deployCompletedAt}</span>
             </li>
           )}
         </For>

@@ -147,7 +147,7 @@ export default class DSL {
             expect(actual).toEqual(projectId);
         },
 
-        checkCommit: async (params: { project: string, commitMessage: string, commitStage?: string, acceptanceStage?: string }) => {
+        checkCommit: async (params: { project: string, commitMessage: string, commitStage?: string, acceptanceStage?: string, deploy?: string }) => {
             const projectId = this.getOrThrow(this.projects, params.project)
             const commitHash = this.getOrThrow(this.commits, params.commitMessage);
 
@@ -158,6 +158,9 @@ export default class DSL {
             }
             if (params.acceptanceStage) {
                 expect(commit.acceptanceStageStatus).toEqual(params.acceptanceStage);
+            }
+            if (params.deploy) {
+                expect(commit.deployStatus).toEqual(params.deploy);
             }
         }
     }

@@ -33,6 +33,9 @@ type Commit struct {
 	AcceptanceStageStartedAt   *time.Time
 	AcceptanceStageCompletedAt *time.Time
 	AcceptanceStageStatus      Status
+	DeployStartedAt            *time.Time
+	DeployCompletedAt          *time.Time
+	DeployStatus               Status
 }
 
 // CommitData represents the data of a commit.
@@ -62,6 +65,7 @@ func (s *EzcdService) CommitStageStarted(projectId string, commitData CommitData
 			CommitStageStatus:     StatusStarted,
 			CommitStageStartedAt:  s.clock.Now(),
 			AcceptanceStageStatus: StatusNone,
+			DeployStatus:          StatusNone,
 		}
 
 		return s.saveCommit(uow, commit)
@@ -153,6 +157,24 @@ func (s *EzcdService) AcceptanceStageFailed(projectId string, hash string) error
 
 		commit.AcceptanceStageCompletedAt = s.clock.Now()
 		commit.AcceptanceStageStatus = StatusFailed
+
+		return s.saveCommit(uow, commit)
+	})
+}
+
+// DeployStarted marks the acceptance stage as started for a given project and commit hash.
+func (s *EzcdService) DeployStarted(projectId string, hash string) error {
+	return s.withUnitOfWork(func(uow UnitOfWork) error {
+		// we need a project-level lock because the commit might not exist so there would be no commit row to lock
+		uow.WaitForProjectLock(projectId)
+
+		commit, err := uow.FindCommitForUpdate(projectId, hash)
+		if err != nil {
+			return fmt.Errorf("failed to find commit with hash %v: %w", hash, err)
+		}
+
+		commit.DeployStartedAt = s.clock.Now()
+		commit.DeployStatus = StatusStarted
 
 		return s.saveCommit(uow, commit)
 	})

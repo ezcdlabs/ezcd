@@ -44,7 +44,10 @@ func (p *PostgresDatabase) GetCommits(id string) ([]ezcd.Commit, error) {
 		commit_stage_status,
 		acceptance_stage_started_at,
 		acceptance_stage_completed_at,
-		acceptance_stage_status
+		acceptance_stage_status,
+		deploy_started_at,
+		deploy_completed_at,
+		deploy_status
 	FROM commits WHERE project_id = $1`, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query commits from the database: %w", err)
@@ -67,6 +70,9 @@ func (p *PostgresDatabase) GetCommits(id string) ([]ezcd.Commit, error) {
 			&commit.AcceptanceStageStartedAt,
 			&commit.AcceptanceStageCompletedAt,
 			&commit.AcceptanceStageStatus,
+			&commit.DeployStartedAt,
+			&commit.DeployCompletedAt,
+			&commit.DeployStatus,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan commit: %w", err)
 		}
@@ -98,7 +104,10 @@ func (u *PostgresUnitOfWork) FindCommitForUpdate(projectId string, hash string) 
 		commit_stage_status,
 		acceptance_stage_started_at,
 		acceptance_stage_completed_at,
-		acceptance_stage_status
+		acceptance_stage_status,
+		deploy_started_at,
+		deploy_completed_at,
+		deploy_status
 	FROM commits 
 	WHERE 
 		project_id = $1 AND
@@ -119,6 +128,9 @@ func (u *PostgresUnitOfWork) FindCommitForUpdate(projectId string, hash string) 
 		&commit.AcceptanceStageStartedAt,
 		&commit.AcceptanceStageCompletedAt,
 		&commit.AcceptanceStageStatus,
+		&commit.DeployStartedAt,
+		&commit.DeployCompletedAt,
+		&commit.DeployStatus,
 	); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("commit not found: %w", err)
@@ -144,9 +156,12 @@ func (u *PostgresUnitOfWork) SaveCommit(commit ezcd.Commit) error {
 		commit_stage_status,
 		acceptance_stage_started_at,
 		acceptance_stage_completed_at,
-		acceptance_stage_status
+		acceptance_stage_status,
+		deploy_started_at,
+		deploy_completed_at,
+		deploy_status
 	) 
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 	ON CONFLICT (commit_hash) DO UPDATE 
 	SET commit_author_name = EXCLUDED.commit_author_name,
 		commit_author_email = EXCLUDED.commit_author_email,
@@ -157,7 +172,10 @@ func (u *PostgresUnitOfWork) SaveCommit(commit ezcd.Commit) error {
 		commit_stage_status = EXCLUDED.commit_stage_status,
 		acceptance_stage_started_at = EXCLUDED.acceptance_stage_started_at,
 		acceptance_stage_completed_at = EXCLUDED.acceptance_stage_completed_at,
-		acceptance_stage_status = EXCLUDED.acceptance_stage_status`,
+		acceptance_stage_status = EXCLUDED.acceptance_stage_status,
+		deploy_started_at = EXCLUDED.deploy_started_at,
+		deploy_completed_at = EXCLUDED.deploy_completed_at,
+		deploy_status = EXCLUDED.deploy_status`,
 
 		commit.Project,
 		commit.Hash,
@@ -170,7 +188,10 @@ func (u *PostgresUnitOfWork) SaveCommit(commit ezcd.Commit) error {
 		commit.CommitStageStatus,
 		commit.AcceptanceStageStartedAt,
 		commit.AcceptanceStageCompletedAt,
-		commit.AcceptanceStageStatus)
+		commit.AcceptanceStageStatus,
+		commit.DeployStartedAt,
+		commit.DeployCompletedAt,
+		commit.DeployStatus)
 	if err != nil {
 		return fmt.Errorf("failed to save commit: %w", err)
 	}

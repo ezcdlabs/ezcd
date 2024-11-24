@@ -20,9 +20,9 @@ CREATE TABLE IF NOT EXISTS commits (
     acceptance_stage_completed_at TIMESTAMPTZ,
     acceptance_stage_status TEXT CHECK(acceptance_stage_status IN ('none', 'started', 'passed', 'failed')) NOT NULL DEFAULT 'none',
     
-    -- deploy_started_at TIMESTAMPTZ,
-    -- deploy_completed_at TIMESTAMPTZ,
-    -- deploy_status TEXT CHECK(deploy_status IN ('none', 'started', 'passed', 'failed')) NOT NULL,
+    deploy_started_at TIMESTAMPTZ,
+    deploy_completed_at TIMESTAMPTZ,
+    deploy_status TEXT CHECK(deploy_status IN ('none', 'started', 'passed', 'failed')) NOT NULL DEFAULT 'none',
     -- ltfc_completed TIMESTAMPTZ
 
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL

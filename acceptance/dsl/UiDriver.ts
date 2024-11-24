@@ -53,6 +53,7 @@ export default class UiDriver {
             commitAuthor: await commit.$("[data-label=commitAuthor]"),
             commitStageStatus: await commit.$("[data-label=commitStageStatus]"),
             acceptanceStageStatus: await commit.$("[data-label=acceptanceStageStatus]"),
+            deployStatus: await commit.$("[data-label=deployStatus]"),
         }
 
         return {
@@ -60,6 +61,7 @@ export default class UiDriver {
             commitAuthor: await elements.commitAuthor?.innerText(),
             commitStageStatus: await elements.commitStageStatus?.getAttribute("data-value"),
             acceptanceStageStatus: await elements.acceptanceStageStatus?.getAttribute("data-value"),
+            deployStatus: await elements.deployStatus?.getAttribute("data-value"),
         }
     }
 }
