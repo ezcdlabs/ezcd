@@ -1,8 +1,6 @@
 package cmd_test
 
 import (
-	"time"
-
 	"github.com/ezcdlabs/ezcd/pkg/ezcd"
 )
 
@@ -136,12 +134,4 @@ func (m *mockEzcdService) AcceptanceStageFailed(projectId string, hash string) e
 	m.projectName = projectId
 	m.commitHash = hash
 	return nil
-}
-
-// Mock Clock implementation
-type mockClock struct{}
-
-func (m *mockClock) Now() *time.Time {
-	now := time.Now()
-	return &now
 }
