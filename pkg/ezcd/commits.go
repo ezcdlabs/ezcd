@@ -162,7 +162,7 @@ func (s *EzcdService) AcceptanceStageFailed(projectId string, hash string) error
 	})
 }
 
-// DeployStarted marks the acceptance stage as started for a given project and commit hash.
+// DeployStarted marks the deploy as started for a given project and commit hash.
 func (s *EzcdService) DeployStarted(projectId string, hash string) error {
 	return s.withUnitOfWork(func(uow UnitOfWork) error {
 		// we need a project-level lock because the commit might not exist so there would be no commit row to lock
@@ -175,6 +175,24 @@ func (s *EzcdService) DeployStarted(projectId string, hash string) error {
 
 		commit.DeployStartedAt = s.clock.Now()
 		commit.DeployStatus = StatusStarted
+
+		return s.saveCommit(uow, commit)
+	})
+}
+
+// DeployPassed marks the deploy as passed for a given project and commit hash.
+func (s *EzcdService) DeployPassed(projectId string, hash string) error {
+	return s.withUnitOfWork(func(uow UnitOfWork) error {
+		// we need a project-level lock because the commit might not exist so there would be no commit row to lock
+		uow.WaitForProjectLock(projectId)
+
+		commit, err := uow.FindCommitForUpdate(projectId, hash)
+		if err != nil {
+			return fmt.Errorf("failed to find commit with hash %v: %w", hash, err)
+		}
+
+		commit.DeployCompletedAt = s.clock.Now()
+		commit.DeployStatus = StatusPassed
 
 		return s.saveCommit(uow, commit)
 	})

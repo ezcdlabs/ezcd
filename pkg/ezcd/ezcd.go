@@ -59,7 +59,7 @@ type Ezcd interface {
 	AcceptanceStageFailed(projectId string, hash string) error
 
 	DeployStarted(projectId string, hash string) error
-	// DeployPassed(projectId string, hash string) error
+	DeployPassed(projectId string, hash string) error
 	// DeployFailed(projectId string, hash string) error
 }
 
