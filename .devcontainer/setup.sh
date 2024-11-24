@@ -15,3 +15,7 @@ git config --global pull.rebase true
 
 # install pg-schema-diff
 go install github.com/stripe/pg-schema-diff/cmd/pg-schema-diff@latest
+
+# install lefthook
+go install github.com/evilmartians/lefthook
+lefthook install
