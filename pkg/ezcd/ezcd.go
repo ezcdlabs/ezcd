@@ -56,6 +56,7 @@ type Ezcd interface {
 
 	AcceptanceStageStarted(projectId string, hash string) error
 	AcceptanceStagePassed(projectId string, hash string) error
+	AcceptanceStageFailed(projectId string, hash string) error
 }
 
 type EzcdService struct {

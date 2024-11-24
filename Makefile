@@ -15,6 +15,9 @@ install:
 	go mod tidy
 	cd web && pnpm install
 
+format:
+	go fmt ./...
+
 # Run tests
 test:
 	go test ./...

@@ -2,8 +2,9 @@ pre-commit:
   parallel: true
   commands:
     "go-fmt":
-      glob: "*.go"
-      run: go fmt {staged_files}
+      # glob: "*.go"
+      # run: go fmt {staged_files}
+      run: go fmt ./...
     "go-vet":
       run: go vet ./...
     "go-test":

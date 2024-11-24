@@ -37,6 +37,7 @@ type mockEzcdService struct {
 	commitStageFailedError      error
 	acceptanceStageStartedError error
 	acceptanceStagePassedError  error
+	acceptanceStageFailedError  error
 }
 
 func (m *mockEzcdService) SetClock(clock ezcd.Clock) {
@@ -121,6 +122,16 @@ func (m *mockEzcdService) AcceptanceStagePassed(projectId string, hash string) e
 	m.methodCalled = "AcceptanceStagePassed"
 	if m.acceptanceStagePassedError != nil {
 		return m.acceptanceStagePassedError
+	}
+	m.projectName = projectId
+	m.commitHash = hash
+	return nil
+}
+
+func (m *mockEzcdService) AcceptanceStageFailed(projectId string, hash string) error {
+	m.methodCalled = "AcceptanceStageFailed"
+	if m.acceptanceStageFailedError != nil {
+		return m.acceptanceStageFailedError
 	}
 	m.projectName = projectId
 	m.commitHash = hash
