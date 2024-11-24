@@ -198,6 +198,24 @@ func (s *EzcdService) DeployPassed(projectId string, hash string) error {
 	})
 }
 
+// DeployFailed marks the deploy as Failed for a given project and commit hash.
+func (s *EzcdService) DeployFailed(projectId string, hash string) error {
+	return s.withUnitOfWork(func(uow UnitOfWork) error {
+		// we need a project-level lock because the commit might not exist so there would be no commit row to lock
+		uow.WaitForProjectLock(projectId)
+
+		commit, err := uow.FindCommitForUpdate(projectId, hash)
+		if err != nil {
+			return fmt.Errorf("failed to find commit with hash %v: %w", hash, err)
+		}
+
+		commit.DeployCompletedAt = s.clock.Now()
+		commit.DeployStatus = StatusFailed
+
+		return s.saveCommit(uow, commit)
+	})
+}
+
 func (s *EzcdService) saveCommit(uow UnitOfWork, commit *Commit) error {
 	if err := uow.SaveCommit(*commit); err != nil {
 		return fmt.Errorf("failed to save commit: %w", err)

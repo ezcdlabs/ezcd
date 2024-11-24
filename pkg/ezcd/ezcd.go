@@ -60,7 +60,7 @@ type Ezcd interface {
 
 	DeployStarted(projectId string, hash string) error
 	DeployPassed(projectId string, hash string) error
-	// DeployFailed(projectId string, hash string) error
+	DeployFailed(projectId string, hash string) error
 }
 
 type EzcdService struct {
