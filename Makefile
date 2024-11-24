@@ -17,11 +17,11 @@ install:
 
 # Run tests
 test:
-	go test -coverprofile=${COVERAGE_FILE} ./...
+	go test ./...
 
-coverage: test
-	mkdir -p $(COVERAGE_HTML_DIR)
-	go tool cover -html=$(COVERAGE_FILE) -o $(COVERAGE_HTML_DIR)/index.html
+# coverage: test
+# 	mkdir -p $(COVERAGE_HTML_DIR)
+# 	go tool cover -html=$(COVERAGE_FILE) -o $(COVERAGE_HTML_DIR)/index.html
 
 serve-coverage: coverage
 	pnpm dlx serve $(COVERAGE_HTML_DIR)

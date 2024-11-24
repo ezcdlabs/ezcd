@@ -12,7 +12,7 @@ func (s *EzcdService) CheckHealth() error {
 
 	// check if the database has the projects table:
 	if err := s.db.CheckProjectsTable(); err != nil {
-		return fmt.Errorf("database connection is okunable to find projects table: %w", err)
+		return fmt.Errorf("database connection is unable to find projects table: %w", err)
 	}
 
 	return nil
