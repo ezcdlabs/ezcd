@@ -1,9 +1,25 @@
 {
-    "go.coverOnSingleTest": true,
-    "go.coverOnSingleTestFile": true,
-    "go.coverOnTestPackage": true,
-    "go.coverOnSave": true,
-    "go.coverageDecorator": {
-        "type": "highlight",
-    },
+  "go.coverOnSingleTest": true,
+  "go.coverOnSingleTestFile": true,
+  "go.coverOnTestPackage": true,
+  "go.coverOnSave": true,
+  "go.coverageDecorator": {
+    "type": "highlight"
+  },
+  "[typescript]": {
+    "editor.tabSize": 2
+  },
+  "[typescriptreact]": {
+    "editor.tabSize": 2
+  },
+  "[html]": {
+    "editor.tabSize": 2
+  },
+  "[css]": {
+    "editor.tabSize": 2
+  },
+  "[javascript]": {
+    "editor.tabSize": 2
+  },
+  "editor.formatOnSave": true
 }

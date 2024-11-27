@@ -18,7 +18,8 @@
             "extensions": [
                 "golang.go",
                 "github.copilot",
-                "github.copilot-chat"
+                "github.copilot-chat",
+                "esbenp.prettier-vscode"
             ]
         }
     }

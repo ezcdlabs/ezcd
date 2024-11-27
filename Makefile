@@ -58,7 +58,7 @@ acceptance:
 	cd acceptance && pnpm exec playwright test
 
 playwright:
-	cd acceptance && pnpm exec playwright test --ui --ui-host=0.0.0.0
+	cd acceptance && pnpm exec playwright test --ui --ui-host=0.0.0.0 --ui-port=8080
 
 env:
 	@echo 'export EZCD_DATABASE_URL='${EZCD_DATABASE_URL}
