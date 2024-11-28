@@ -72,6 +72,8 @@ export default class UiDriver {
       ),
       deployStatus: await commit.$("[data-label=deployStatus]"),
 
+      leadTime: await commit.$("[data-label=leadTime]"),
+
       // figure out which section the commit is within:
       section: await this.page
         .locator("section")
@@ -92,6 +94,9 @@ export default class UiDriver {
         "data-value"
       ),
       deployStatus: await elements.deployStatus?.getAttribute("data-value"),
+
+      isLeadTimeStopped:
+        (await elements.leadTime?.getAttribute("data-stopped")) === "true",
 
       section: (await elements.section?.getAttribute(
         "data-section"

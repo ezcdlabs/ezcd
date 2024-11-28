@@ -493,6 +493,51 @@ func TestShouldPassDeploy(t *testing.T) {
 	assert.Equal(t, pointE, *commits[0].DeployCompletedAt)
 }
 
+func TestShouldSetLeadTimeCompletedAtWhenPassingDeploy(t *testing.T) {
+	mockDB := newMockDatabase()
+	mockClock := newMockClock()
+	service := ezcd.NewEzcdService(mockDB)
+	service.SetClock(mockClock)
+
+	startTime := mockClock.CurrentTime
+	pointA := startTime.Add(time.Second * 10)
+	pointB := pointA.Add(time.Second * 10)
+	pointC := pointB.Add(time.Second * 10)
+	pointD := pointC.Add(time.Second * 10)
+	pointE := pointD.Add(time.Second * 10)
+
+	service.CreateProject("project1")
+
+	commitData := exampleCommitData("test commit", startTime)
+
+	mockClock.waitUntil(pointA)
+
+	service.CommitStageStarted("project1", commitData)
+	service.CommitStagePassed("project1", commitData.Hash)
+
+	mockClock.waitUntil(pointB)
+	err := service.AcceptanceStageStarted("project1", commitData.Hash)
+	assert.NoError(t, err)
+
+	mockClock.waitUntil(pointC)
+	err = service.AcceptanceStagePassed("project1", commitData.Hash)
+	assert.NoError(t, err)
+
+	mockClock.waitUntil(pointD)
+	err = service.DeployStarted("project1", commitData.Hash)
+	assert.NoError(t, err)
+
+	mockClock.waitUntil(pointE)
+	err = service.DeployPassed("project1", commitData.Hash)
+	assert.NoError(t, err)
+
+	commits, err := service.GetCommits("project1")
+	assert.NoError(t, err)
+
+	assert.Len(t, commits, 1)
+	assert.Equal(t, pointE, *commits[0].LeadTimeCompletedAt)
+}
+
 func TestShouldFailDeploy(t *testing.T) {
 	mockDB := newMockDatabase()
 	mockClock := newMockClock()

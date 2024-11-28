@@ -54,6 +54,7 @@ type Commit struct {
 	DeployStartedAt            *time.Time `json:"deployStartedAt"`
 	DeployCompletedAt          *time.Time `json:"deployCompletedAt"`
 	DeployStatus               string     `json:"deployStatus"`
+	LeadTimeCompletedAt        *time.Time `json:"leadTimeCompletedAt"`
 }
 
 func mapToAnnotatedCommit(c ezcd.Commit) Commit {
@@ -72,6 +73,7 @@ func mapToAnnotatedCommit(c ezcd.Commit) Commit {
 		DeployStartedAt:            c.DeployStartedAt,
 		DeployCompletedAt:          c.DeployCompletedAt,
 		DeployStatus:               c.DeployStatus.String(),
+		LeadTimeCompletedAt:        c.LeadTimeCompletedAt,
 	}
 }
 

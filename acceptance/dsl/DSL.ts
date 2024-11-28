@@ -185,6 +185,7 @@ export default class DSL {
       commitStage?: string;
       acceptanceStage?: string;
       deploy?: string;
+      isLeadTimeStopped?: boolean;
       section?: pipelineSection;
     }) => {
       const projectId = this.getOrThrow(this.projects, params.project);
@@ -203,6 +204,10 @@ export default class DSL {
       }
       if (params.deploy) {
         expect(commit.deployStatus).toEqual(params.deploy);
+      }
+
+      if (params.isLeadTimeStopped !== undefined) {
+        expect(commit.isLeadTimeStopped).toEqual(params.isLeadTimeStopped);
       }
 
       if (params.section) {

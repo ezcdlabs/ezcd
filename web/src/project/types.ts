@@ -21,4 +21,6 @@ export interface Commit {
   deployStatus: status;
   deployStartedAt: string;
   deployCompletedAt: string;
+
+  leadTimeCompletedAt: string;
 }

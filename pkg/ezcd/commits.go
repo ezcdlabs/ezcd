@@ -36,6 +36,7 @@ type Commit struct {
 	DeployStartedAt            *time.Time
 	DeployCompletedAt          *time.Time
 	DeployStatus               Status
+	LeadTimeCompletedAt        *time.Time
 }
 
 // CommitData represents the data of a commit.
@@ -191,7 +192,9 @@ func (s *EzcdService) DeployPassed(projectId string, hash string) error {
 			return fmt.Errorf("failed to find commit with hash %v: %w", hash, err)
 		}
 
-		commit.DeployCompletedAt = s.clock.Now()
+		now := s.clock.Now()
+		commit.DeployCompletedAt = now
+		commit.LeadTimeCompletedAt = now
 		commit.DeployStatus = StatusPassed
 
 		return s.saveCommit(uow, commit)

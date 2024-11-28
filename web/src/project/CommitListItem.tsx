@@ -73,6 +73,12 @@ export default function CommitListItem(props: { commit: Commit }) {
         {props.commit.hash?.slice(0, 7)}
       </span>
       )<span data-label="commitDate" data-value={props.commit.date}></span>
+      <span
+        data-label="leadTime"
+        data-stopped={Boolean(props.commit.leadTimeCompletedAt)}
+      >
+        Lead time.
+      </span>
     </li>
   );
 }
