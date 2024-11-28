@@ -5,6 +5,10 @@ DIST_DIR=dist
 COVERAGE_FILE=coverage.out
 COVERAGE_HTML_DIR=coverage
 
+export PGUSER := $(shell whoami)
+# export PGPASSWORD := 
+export PGHOST := localhost
+export PGDATABASE := postgres
 export EZCD_DATABASE_URL=postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}:5432/ezcd?sslmode=disable
 
 # Default target
@@ -14,6 +18,14 @@ all: install test build
 install:
 	go mod tidy
 	cd web && pnpm install
+	cd acceptance && pnpm install
+
+dev-setup:
+	cd acceptance && pnpm exec playwright install
+	go install github.com/stripe/pg-schema-diff/cmd/pg-schema-diff@latest
+	go get github.com/evilmartians/lefthook
+	go install github.com/evilmartians/lefthook 
+	lefthook install
 
 format:
 	go fmt ./...
@@ -21,6 +33,7 @@ format:
 # Run tests
 test:
 	go test ./...
+	cd web && pnpm run test
 
 # coverage: test
 # 	mkdir -p $(COVERAGE_HTML_DIR)

@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite';
-import solidPlugin from 'vite-plugin-solid';
+import { defineConfig } from "vite";
+import solidPlugin from "vite-plugin-solid";
 // import devtools from 'solid-devtools/vite';
 
 export default defineConfig({
@@ -13,14 +13,14 @@ export default defineConfig({
   ],
   server: {
     port: 3923,
+    host: "127.0.0.1",
     proxy: {
-      '/api': 'http://localhost:3924'
-    }
+      "/api": "http://localhost:3924",
+    },
   },
   build: {
-    target: 'esnext',
-    outDir: '../cmd/server/public/web-dist',
+    target: "esnext",
+    outDir: "../cmd/server/public/web-dist",
     emptyOutDir: true,
   },
-  
 });

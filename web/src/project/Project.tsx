@@ -2,6 +2,7 @@ import { useParams } from "@solidjs/router";
 import { createMemo, createResource, For, JSX, Show, Suspense } from "solid-js";
 import { Commit, pipelineSection } from "./types";
 import CommitListItem from "./CommitListItem";
+import groupCommits from "./groupCommits";
 
 interface Project {
   // Define the structure of a project here
@@ -50,100 +51,47 @@ export default function Project() {
 function Commits(props: { projectId: string }) {
   const [commits] = createResource(() => fetchCommits(props.projectId));
 
-  const groupedCommits = createMemo(() => {
-    const commitList = commits();
-    if (!commitList) return {};
-
-    const sections = {
-      commitStage: { status: "ok" },
-      acceptance: { status: "ok" },
-      deploy: { status: "ok" },
-    };
-
-    const groups = {
-      runningCommitStage: [] as Commit[],
-      queuedAcceptanceStage: [] as Commit[],
-      runningAcceptanceStage: [] as Commit[],
-      queuedForDeploy: [] as Commit[],
-      runningDeploy: [] as Commit[],
-    }
-
-    // find all the commit stage ones
-    for (const commit of commitList) {
-      if (commit.commitStageStatus === "passed") {
-        break;
-      }
-
-      groups.runningCommitStage.push(commit);
-    }
-
-    // find all the queued acceptance stage ones
-    for (const commit of commitList) {
-      if (commit.acceptanceStageStatus === "started") {
-        break;
-      }
-
-      groups.queuedAcceptanceStage.push(commit);
-    }
-
-    // find the running acceptance stage ones
-    for (const commit of commitList) {
-      if (commit.acceptanceStageStatus === "passed") {
-        break;
-      }
-
-      groups.runningAcceptanceStage.push(commit);
-    }
-    
-    // find the running acceptance stage ones
-    for (const commit of commitList) {
-      if (commit.acceptanceStageStatus === "passed") {
-        break;
-      }
-
-      groups.runningAcceptanceStage.push(commit);
-    }
-  });
+  const groupedCommits = createMemo(() => groupCommits(commits() ?? []));
 
   return (
     <Suspense>
       <Show when={commits()} fallback={<div>Commits not found.</div>}>
         <div data-commits="loaded">
-          <Section name="commit-stage">
-            <Group name="Running commit stage:">
-              <For each={commits()}>
-                {(commit) => <CommitListItem commit={commit} />}
+          {groupedCommits().map((section) => (
+            <Section name={section.name}>
+              <For each={section.groups}>
+                {(group) => (
+                  <Group name={group.name}>
+                    <For each={group.commits}>
+                      {(commit) => <CommitListItem commit={commit} />}
+                    </For>
+                  </Group>
+                )}
               </For>
-            </Group>
-          </Section>
-          <Section name="acceptance-stage">
-            <Group name="Running acceptance stage:">
-              <For each={[]}>
-                {(commit) => <CommitListItem commit={commit} />}
-              </For>
-            </Group>
-          </Section>
-          <Section name="deploy">
-            <Group name="Running deploy:">
-              <For each={[]}>
-                {(commit) => <CommitListItem commit={commit} />}
-              </For>
-            </Group>
-          </Section>
+            </Section>
+          ))}
         </div>
       </Show>
     </Suspense>
   );
 }
 
-function Section(props: { children: JSX.Element; name: pipelineSection }) {
-  return <section data-section={props.name}>{props.children}</section>;
+function Section(props: { children: JSX.Element; name: string }) {
+  return (
+    <section
+      class="border-t border-white-secondary py-4"
+      data-section={props.name}
+    >
+      <h2 class="container mb-6 text-lg font-semibold">{props.name}</h2>
+      {props.children}
+    </section>
+  );
 }
 
 function Group(props: { children: JSX.Element; name: string }) {
   return (
     <div>
-      <h2 class="container text-sm">{props.name}:</h2>
+      <h3 class="container text-sm">{props.name}</h3>
       <ul>{props.children}</ul>
     </div>
   );

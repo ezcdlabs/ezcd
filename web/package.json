@@ -15,6 +15,7 @@
     "@solidjs/testing-library": "^0.8.10",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/user-event": "^14.5.2",
+    "@vitest/coverage-v8": "^2.1.6",
     "autoprefixer": "^10.4.20",
     "jsdom": "^25.0.1",
     "prettier-plugin-tailwindcss": "^0.6.9",
@@ -27,6 +28,7 @@
   },
   "dependencies": {
     "@solidjs/router": "^0.15.1",
+    "date-fns": "^4.1.0",
     "solid-js": "^1.8.11"
   }
 }

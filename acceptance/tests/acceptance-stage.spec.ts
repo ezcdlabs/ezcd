@@ -90,7 +90,7 @@ test("should show commit as failed the acceptance stage", async ({ page }) => {
   });
 });
 
-test.skip("should show commits in acceptance stage when a later commit starts acceptance stage", async ({
+test("should show commits in acceptance stage when a later commit starts acceptance stage", async ({
   page,
 }) => {
   const dsl = new DSL(page);
@@ -148,13 +148,13 @@ test.skip("should show commits in acceptance stage when a later commit starts ac
     commitMessage: "Second commit",
     commitStage: "passed",
     acceptanceStage: "none",
-    section: "running-acceptance-stage",
+    section: "acceptance-stage",
   });
   await dsl.ui.checkCommit({
     project: "project1",
     commitMessage: "Third commit",
     commitStage: "passed",
     acceptanceStage: "started",
-    section: "running-acceptance-stage",
+    section: "acceptance-stage",
   });
 });

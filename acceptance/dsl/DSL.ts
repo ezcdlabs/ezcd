@@ -4,13 +4,7 @@ import * as uuid from "uuid";
 import CLIDriver from "./CliDriver";
 import * as dateFns from "date-fns";
 
-export type pipelineSection =
-  | "running-commit-stage"
-  | "in-acceptance-queue"
-  | "running-acceptance-stage"
-  | "in-deploy-queue"
-  | "deploying"
-  | "deployed";
+export type pipelineSection = "commit-stage" | "acceptance-stage" | "deploy";
 
 export default class DSL {
   private projects = new Map<string, string>();
