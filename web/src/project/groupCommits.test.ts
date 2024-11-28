@@ -299,6 +299,40 @@ test("should show failed commit stage in failed group and set the commit stage t
   ]);
 });
 
+test("should show fixed commit stage if newer commit fixes previous error", async () => {
+  const commit1 = makeCommit({
+    ...defaultCommit,
+    hash: "1",
+    commitStageStatus: "failed",
+  });
+  const commit2 = makeCommit({
+    ...defaultCommit,
+    hash: "2",
+    commitStageStatus: "passed",
+  });
+
+  const actual = groupCommits([commit2, commit1]);
+
+  expect(actual).toEqual([
+    {
+      name: "commit-stage",
+      status: "ok",
+      groups: [],
+    },
+    {
+      name: "acceptance-stage",
+      status: "ok",
+      groups: [
+        {
+          name: "Queued for acceptance stage:",
+          commits: [commit2, commit1],
+        },
+      ],
+    },
+    { name: "deploy", status: "ok", groups: [] },
+  ]);
+});
+
 test("should show failed acceptance stage in failed group and set the acceptance stage to failing", async () => {
   const commit1 = makeCommit({
     ...defaultCommit,

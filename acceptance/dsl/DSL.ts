@@ -209,6 +209,23 @@ export default class DSL {
         expect(commit.section).toEqual(params.section);
       }
     },
+
+    checkStage: async (params: {
+      project: string;
+      stage: string;
+      status?: string;
+    }) => {
+      const projectId = this.getOrThrow(this.projects, params.project);
+
+      const stage = await this.uiDriver.getProjectStageInfo({
+        projectId,
+        stage: params.stage,
+      });
+
+      if (params.status) {
+        expect(stage.status).toEqual(params.status);
+      }
+    },
   };
 }
 

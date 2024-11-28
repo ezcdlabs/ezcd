@@ -3,6 +3,7 @@ import { createMemo, createResource, For, JSX, Show, Suspense } from "solid-js";
 import { Commit, pipelineSection } from "./types";
 import CommitListItem from "./CommitListItem";
 import groupCommits from "./groupCommits";
+import classNames from "../utils/classNames";
 
 interface Project {
   // Define the structure of a project here
@@ -58,7 +59,7 @@ function Commits(props: { projectId: string }) {
       <Show when={commits()} fallback={<div>Commits not found.</div>}>
         <div data-commits="loaded">
           {groupedCommits().map((section) => (
-            <Section name={section.name}>
+            <Section name={section.name} status={section.status}>
               <For each={section.groups}>
                 {(group) => (
                   <Group name={group.name}>
@@ -76,11 +77,19 @@ function Commits(props: { projectId: string }) {
   );
 }
 
-function Section(props: { children: JSX.Element; name: string }) {
+function Section(props: {
+  children: JSX.Element;
+  status: string;
+  name: string;
+}) {
   return (
     <section
-      class="border-t border-white-secondary py-4"
+      class={classNames(
+        "border-t border-white-secondary py-4",
+        props.status === "failing" ? "bg-red-950" : "",
+      )}
       data-section={props.name}
+      data-status={props.status}
     >
       <h2 class="container mb-6 text-lg font-semibold">{props.name}</h2>
       {props.children}

@@ -36,6 +36,20 @@ export default class UiDriver {
     return commitTexts;
   }
 
+  async getProjectStageInfo(params: { projectId: string; stage: string }) {
+    await this.page.goto(`/project/${params.projectId}`);
+
+    // wait for the commits to load
+    await this.page.waitForSelector(`[data-commits=loaded]`);
+
+    // find the element with the data tag [data-pipelineStage="stage"]
+    const stageElement = await this.page.$(`[data-section="${params.stage}"]`);
+
+    return {
+      status: await stageElement.getAttribute(`data-status`),
+    };
+  }
+
   async getProjectCommit(params: { projectId: string; commitHash: string }) {
     await this.page.goto(`/project/${params.projectId}`);
 
