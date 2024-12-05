@@ -12,15 +12,27 @@ body {
 }
 
 .braile-spinner::after {
-  content: '⠋';
+  content: "⠋";
   animation: braile-spin 0.7s steps(6) infinite;
 }
 
 @keyframes braile-spin {
-  0% { content: '⠙'; }
-  20% { content: '⠸'; }
-  40% { content: '⠴'; }
-  60% { content: '⠦'; }
-  80% { content: '⠇'; }
-  100% { content: '⠋'; }
+  0% {
+    content: "⠙";
+  }
+  20% {
+    content: "⠸";
+  }
+  40% {
+    content: "⠴";
+  }
+  60% {
+    content: "⠦";
+  }
+  80% {
+    content: "⠇";
+  }
+  100% {
+    content: "⠋";
+  }
 }

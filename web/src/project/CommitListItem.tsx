@@ -1,84 +1,123 @@
+import classNames from "../utils/classNames";
+import TimerDisplay from "./TimerDisplay";
 import { Commit, status } from "./types";
+import * as dateFns from "date-fns";
 
-export default function CommitListItem(props: { commit: Commit }) {
+export default function CommitListItem(props: {
+  commit: Commit;
+  isCauseOfFailure: boolean;
+}) {
   return (
     <li
-      class="container text-sm text-white-secondary"
+      class={classNames(
+        "text-sm",
+        props.isCauseOfFailure
+          ? "bg-red-950 text-red-500"
+          : "text-white-secondary",
+      )}
       data-commit={props.commit.hash}
     >
-      &nbsp;&nbsp;
-      <span>
+      <div class="container flex">
+        <div class="grow">
+          &nbsp;&nbsp;
+          <span>
+            <span
+              data-label="commitStageStatus"
+              data-value={props.commit.commitStageStatus}
+            >
+              <StatusIndicator
+                status={props.commit.commitStageStatus}
+                color="white"
+              />
+              <span
+                class="hidden"
+                data-label="commitStageStartedAt"
+                data-value={props.commit.commitStageStartedAt}
+              ></span>
+
+              <span
+                class="hidden"
+                data-label="commitStageCompletedAt"
+                data-value={props.commit.commitStageCompletedAt}
+              ></span>
+            </span>
+            <span
+              data-label="acceptanceStageStatus"
+              data-value={props.commit.acceptanceStageStatus}
+            >
+              <StatusIndicator
+                status={props.commit.acceptanceStageStatus}
+                color="yellow"
+              />
+              <span
+                class="hidden"
+                data-label="acceptanceStageStartedAt"
+                data-value={props.commit.acceptanceStageStartedAt}
+              ></span>
+
+              <span
+                class="hidden"
+                data-label="acceptanceStageCompletedAt"
+                data-value={props.commit.acceptanceStageCompletedAt}
+              ></span>
+            </span>
+            <span
+              data-label="deployStatus"
+              data-value={props.commit.deployStatus}
+            >
+              <StatusIndicator
+                status={props.commit.deployStatus}
+                color="blue"
+              />
+              <span
+                class="hidden"
+                data-label="deployStartedAt"
+                data-value={props.commit.deployStartedAt}
+              ></span>
+
+              <span
+                class="hidden"
+                data-label="deployCompletedAt"
+                data-value={props.commit.deployCompletedAt}
+              ></span>
+            </span>
+          </span>
+          <span data-label="commitAuthorName">
+            &nbsp;{props.commit.authorName}
+          </span>
+          <span
+            data-label="commitAuthorEmail"
+            data-value={props.commit.authorEmail}
+          ></span>
+          : <span data-label="commitMessage">{props.commit.message}</span>
+          &nbsp;(
+          <span data-label="commitHash" data-value={props.commit.hash}>
+            {props.commit.hash?.slice(0, 7)}
+          </span>
+          )<span data-label="commitDate" data-value={props.commit.date}></span>
+        </div>
+        {props.isCauseOfFailure && (
+          <span class="mr-2 rounded-full bg-red-900 px-3 text-red-400">
+            BREAKING
+          </span>
+        )}
         <span
-          data-label="commitStageStatus"
-          data-value={props.commit.commitStageStatus}
+          data-label="leadTime"
+          data-stopped={Boolean(props.commit.leadTimeCompletedAt)}
+          class={classNames(
+            props.commit.leadTimeCompletedAt && "text-cyan-500",
+          )}
         >
-          <StatusIndicator
-            status={props.commit.commitStageStatus}
-            color="white"
+          <TimerDisplay
+            start={dateFns.parseISO(props.commit.date)}
+            end={
+              props.commit.leadTimeCompletedAt
+                ? dateFns.parseISO(props.commit.leadTimeCompletedAt)
+                : undefined
+            }
           />
-          <span
-            class="hidden"
-            data-label="commitStageStartedAt"
-            data-value={props.commit.commitStageStartedAt}
-          ></span>
-
-          <span
-            class="hidden"
-            data-label="commitStageCompletedAt"
-            data-value={props.commit.commitStageCompletedAt}
-          ></span>
         </span>
-        <span
-          data-label="acceptanceStageStatus"
-          data-value={props.commit.acceptanceStageStatus}
-        >
-          <StatusIndicator
-            status={props.commit.acceptanceStageStatus}
-            color="yellow"
-          />
-          <span
-            class="hidden"
-            data-label="acceptanceStageStartedAt"
-            data-value={props.commit.acceptanceStageStartedAt}
-          ></span>
-
-          <span
-            class="hidden"
-            data-label="acceptanceStageCompletedAt"
-            data-value={props.commit.acceptanceStageCompletedAt}
-          ></span>
-        </span>
-        <span data-label="deployStatus" data-value={props.commit.deployStatus}>
-          <StatusIndicator status={props.commit.deployStatus} color="blue" />
-          <span
-            class="hidden"
-            data-label="deployStartedAt"
-            data-value={props.commit.deployStartedAt}
-          ></span>
-
-          <span
-            class="hidden"
-            data-label="deployCompletedAt"
-            data-value={props.commit.deployCompletedAt}
-          ></span>
-        </span>
-      </span>
-      <span data-label="commitAuthorName">{props.commit.authorName}</span>
-      <span
-        data-label="commitAuthorEmail"
-        data-value={props.commit.authorEmail}
-      ></span>
-      : <span data-label="commitMessage">{props.commit.message}</span>(
-      <span data-label="commitHash" data-value={props.commit.hash}>
-        {props.commit.hash?.slice(0, 7)}
-      </span>
-      )<span data-label="commitDate" data-value={props.commit.date}></span>
-      <span
-        data-label="leadTime"
-        data-stopped={Boolean(props.commit.leadTimeCompletedAt)}
-      >
-        Lead time.
-      </span>
+      </div>
     </li>
   );
 }
