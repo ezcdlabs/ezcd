@@ -6,8 +6,9 @@
     </picture>
   </a>
   <h1>EZCD</h1>
-
-
+  
+  ![CI Stage](https://github.com/ezcdlabs/ezcd/actions/workflows/ci.yml/badge.svg)
+  ![Release](https://github.com/ezcdlabs/ezcd/actions/workflows/release.yml/badge.svg)
 </div>
 
 EZCD (pronounced 'Easy C.D.') makes is easy to create optimal CI/CD pipelines using modern best practices from Continuous Delivery and DevOps. EZCD integrates with your existing CI/CD system (GitHub Actions, GitLab Pipelines, Azure DevOps, CircleCI, Google Cloud Build...) and it can easily be deployed to anywhere that supports Docker containers.
