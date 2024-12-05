@@ -10,7 +10,8 @@ export interface CommitForGrouping {
 
 export interface Section<T extends CommitForGrouping> {
   name: string;
-  status: "ok" | "failing";
+  status?: "ok" | "failing";
+  brokenBy?: string;
   groups: {
     name: string;
     commits: T[];
@@ -61,7 +62,7 @@ export default function groupCommits<T extends CommitForGrouping>(
   const failingCommitStage: T[] = [];
   // find any that are still queuing for the acceptance stage
   for (; index < commits.length; index++) {
-    if (commits[index].commitStageStatus !== "failed") {
+    if (commits[index].commitStageStatus === "passed") {
       break;
     }
 
@@ -70,6 +71,7 @@ export default function groupCommits<T extends CommitForGrouping>(
 
   if (failingCommitStage.length > 0) {
     commitStage.status = "failing";
+    commitStage.brokenBy = failingCommitStage[0].hash;
     commitStage.groups.push({
       name: "Failed commit stage:",
       commits: failingCommitStage,
@@ -93,25 +95,28 @@ export default function groupCommits<T extends CommitForGrouping>(
     });
   }
 
-  // find any that are still running the acceptance stage
-  const runningAcceptanceStage: T[] = [];
-
-  for (; index < commits.length; index++) {
-    if (
-      commits[index].acceptanceStageStatus === "passed" ||
-      commits[index].acceptanceStageStatus === "failed"
-    ) {
+  while (index < commits.length) {
+    // find any that are still running the acceptance stage
+    if (commits[index].acceptanceStageStatus !== "started") {
       break;
     }
 
-    runningAcceptanceStage.push(commits[index]);
-  }
+    const runningAcceptanceStage: T[] = [commits[index++]];
 
-  if (runningAcceptanceStage.length > 0) {
-    acceptanceStage.groups.push({
-      name: "Running acceptance stage:",
-      commits: runningAcceptanceStage,
-    });
+    for (; index < commits.length; index++) {
+      if (commits[index].acceptanceStageStatus !== "none") {
+        break;
+      }
+
+      runningAcceptanceStage.push(commits[index]);
+    }
+
+    if (runningAcceptanceStage.length > 0) {
+      acceptanceStage.groups.push({
+        name: "Running acceptance stage:",
+        commits: runningAcceptanceStage,
+      });
+    }
   }
 
   // find any that failed the acceptance stage
@@ -127,6 +132,7 @@ export default function groupCommits<T extends CommitForGrouping>(
 
   if (failedAcceptanceStage.length > 0) {
     acceptanceStage.status = "failing";
+    acceptanceStage.brokenBy = failedAcceptanceStage[0].hash;
     acceptanceStage.groups.push({
       name: "Failed acceptance stage:",
       commits: failedAcceptanceStage,
@@ -183,6 +189,7 @@ export default function groupCommits<T extends CommitForGrouping>(
 
   if (failedToDeploy.length > 0) {
     deploy.status = "failing";
+    deploy.brokenBy = failedToDeploy[0].hash;
     deploy.groups.push({
       name: "Failed to deploy:",
       commits: failedToDeploy,
@@ -198,20 +205,28 @@ export default function groupCommits<T extends CommitForGrouping>(
           weekStartsOn: 1,
         }),
         "EEE, dd MMM yyyy",
-      )}:`,
-      status: "ok",
+      )}`,
       groups: [],
     };
 
-    for (; index < commits.length; index++) {
-      if (!commits[index].deployCompletedAt) {
-        // throw an error?
-        return result;
+    while (index < commits.length) {
+      const name = commits[index].deployCompletedAt
+        ? `Deployed on ${dateFns.format(commits[index].deployCompletedAt!, "EEE, dd MMM yyyy")} at ${dateFns.format(commits[index].deployCompletedAt!, "hh:mm a")}:`
+        : "Error: Deployed commits must have a deployCompletedAt date.";
+
+      const deployedGroup: T[] = [commits[index++]];
+
+      for (; index < commits.length; index++) {
+        if (commits[index].deployStatus === "passed") {
+          break;
+        }
+
+        deployedGroup.push(commits[index]);
       }
 
       week.groups.push({
-        name: `Deployed on ${dateFns.format(commits[index].deployCompletedAt!, "EEE, dd MMM yyyy")} at ${dateFns.format(commits[index].deployCompletedAt!, "hh:mm a")}:`,
-        commits: [commits[index]],
+        name,
+        commits: deployedGroup,
       });
     }
 
