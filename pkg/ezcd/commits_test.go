@@ -1,6 +1,8 @@
 package ezcd_test
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"reflect"
 	"testing"
@@ -538,6 +540,53 @@ func TestShouldSetLeadTimeCompletedAtWhenPassingDeploy(t *testing.T) {
 	assert.Equal(t, pointE, *commits[0].LeadTimeCompletedAt)
 }
 
+func TestShouldSetLeadTimeCompletedForEarlierCommitsWhenNewCommitPassesDeploy(t *testing.T) {
+	mockDB := newMockDatabase()
+	mockClock := newMockClock()
+	service := ezcd.NewEzcdService(mockDB)
+	service.SetClock(mockClock)
+
+	startTime := mockClock.CurrentTime
+	pointA := startTime.Add(time.Second * 10)
+	pointB := pointA.Add(time.Second * 10)
+	pointC := pointB.Add(time.Second * 10)
+	pointD := pointC.Add(time.Second * 10)
+	pointE := pointD.Add(time.Second * 10)
+	pointF := pointE.Add(time.Second * 10)
+
+	service.CreateProject("project1")
+
+	commitData1 := exampleCommitData("test commit 1", startTime)
+	commitData2 := exampleCommitData("test commit 2", pointA)
+
+	mockClock.waitUntil(pointA)
+	service.CommitStageStarted("project1", commitData1)
+	service.CommitStageStarted("project1", commitData2)
+
+	mockClock.waitUntil(pointB)
+	service.CommitStagePassed("project1", commitData1.Hash)
+	service.CommitStagePassed("project1", commitData2.Hash)
+
+	mockClock.waitUntil(pointC)
+	service.AcceptanceStageStarted("project1", commitData2.Hash)
+
+	mockClock.waitUntil(pointD)
+	service.AcceptanceStagePassed("project1", commitData2.Hash)
+
+	mockClock.waitUntil(pointE)
+	service.DeployStarted("project1", commitData2.Hash)
+
+	mockClock.waitUntil(pointF)
+	service.DeployPassed("project1", commitData2.Hash)
+
+	commits, err := service.GetCommits("project1")
+	assert.NoError(t, err)
+
+	assert.Len(t, commits, 2)
+	assert.Equal(t, pointF, *commits[0].LeadTimeCompletedAt)
+	assert.Equal(t, pointF, *commits[1].LeadTimeCompletedAt)
+}
+
 func TestShouldFailDeploy(t *testing.T) {
 	mockDB := newMockDatabase()
 	mockClock := newMockClock()
@@ -585,8 +634,12 @@ func TestShouldFailDeploy(t *testing.T) {
 }
 
 func exampleCommitData(message string, date time.Time) ezcd.CommitData {
+	hasher := sha256.New()
+	hasher.Write([]byte(message))
+	hash := hex.EncodeToString(hasher.Sum(nil))
+
 	return ezcd.CommitData{
-		Hash:        "abc123",
+		Hash:        hash,
 		AuthorName:  "test-author",
 		AuthorEmail: "test-author-email",
 		Message:     message,

@@ -147,6 +147,9 @@ func main() {
 		}
 		annnotatedCommits := mapToAnnotatedCommits(commits)
 		w.Header().Set("Content-Type", "application/json")
+		// write an etag header so that browsers know whether the data has changed:
+		w.Header().Set("ETag", fmt.Sprintf("%d", len(annnotatedCommits)))
+
 		if err := json.NewEncoder(w).Encode(annnotatedCommits); err != nil {
 			http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
 		}

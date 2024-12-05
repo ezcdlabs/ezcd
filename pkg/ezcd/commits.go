@@ -197,6 +197,19 @@ func (s *EzcdService) DeployPassed(projectId string, hash string) error {
 		commit.LeadTimeCompletedAt = now
 		commit.DeployStatus = StatusPassed
 
+		olderCommitsToStop, err := uow.FindUndeployedCommitsBeforeForUpdate(projectId, commit.Date)
+		if err != nil {
+			return fmt.Errorf("failed to query undeployed commits before commit with hash %v: %w", hash, err)
+		}
+
+		// for each commit in olderCommitsToStop:
+		for _, olderCommit := range olderCommitsToStop {
+			olderCommit.LeadTimeCompletedAt = now
+			if err := s.saveCommit(uow, &olderCommit); err != nil {
+				return fmt.Errorf("failed to save older commit with hash %v: %w", olderCommit.Hash, err)
+			}
+		}
+
 		return s.saveCommit(uow, commit)
 	})
 }

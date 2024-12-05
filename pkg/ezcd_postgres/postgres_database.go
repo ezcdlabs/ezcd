@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/ezcdlabs/ezcd/pkg/ezcd"
 	_ "github.com/lib/pq"
@@ -90,6 +91,71 @@ func (p *PostgresDatabase) GetCommits(id string) ([]ezcd.Commit, error) {
 
 type PostgresUnitOfWork struct {
 	tx *sql.Tx
+}
+
+// FindUndeployedCommitsBeforeForUpdate implements ezcd.UnitOfWork.
+func (u *PostgresUnitOfWork) FindUndeployedCommitsBeforeForUpdate(projectId string, date time.Time) ([]ezcd.Commit, error) {
+	rows, err := u.tx.QueryContext(context.Background(), `
+	SELECT 
+		commit_hash,
+		commit_author_name,
+		commit_author_email,
+		commit_message,
+		commit_date,
+		commit_stage_started_at,
+		commit_stage_completed_at,
+		commit_stage_status,
+		acceptance_stage_started_at,
+		acceptance_stage_completed_at,
+		acceptance_stage_status,
+		deploy_started_at,
+		deploy_completed_at,
+		deploy_status,
+		lead_time_completed_at
+	FROM commits 
+	WHERE
+		project_id = $1 AND
+		commit_date < $2
+	FOR UPDATE`,
+		projectId, date)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to query commits from the database: %w", err)
+	}
+	defer rows.Close()
+
+	var commits []ezcd.Commit
+	for rows.Next() {
+		var commit ezcd.Commit
+
+		if err := rows.Scan(
+			&commit.Hash,
+			&commit.AuthorName,
+			&commit.AuthorEmail,
+			&commit.Message,
+			&commit.Date,
+			&commit.CommitStageStartedAt,
+			&commit.CommitStageCompletedAt,
+			&commit.CommitStageStatus,
+			&commit.AcceptanceStageStartedAt,
+			&commit.AcceptanceStageCompletedAt,
+			&commit.AcceptanceStageStatus,
+			&commit.DeployStartedAt,
+			&commit.DeployCompletedAt,
+			&commit.DeployStatus,
+			&commit.LeadTimeCompletedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan commit: %w", err)
+		}
+		commits = append(commits, commit)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
+	}
+
+	return commits, nil
+
 }
 
 // FindCommitForUpdate implements ezcd.UnitOfWork.

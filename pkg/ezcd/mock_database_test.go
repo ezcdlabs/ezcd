@@ -3,6 +3,7 @@ package ezcd_test
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/ezcdlabs/ezcd/pkg/ezcd"
 )
@@ -99,6 +100,20 @@ func (m *mockUnitOfWork) FindCommitForUpdate(projectId string, hash string) (*ez
 		return nil, fmt.Errorf("commit with id %s does not belong to project %s", hash, projectId)
 	}
 	return &commit, nil
+}
+
+// FindUndeployedCommitsBeforeForUpdate implements UnitOfWork.
+func (m *mockUnitOfWork) FindUndeployedCommitsBeforeForUpdate(projectId string, date time.Time) ([]ezcd.Commit, error) {
+	commits := make([]ezcd.Commit, 0)
+	for _, commit := range m.db.Commits {
+		if commit.Project == projectId && commit.LeadTimeCompletedAt == nil && commit.Date.Before(date) {
+			commits = append(commits, commit)
+		}
+	}
+	sort.SliceStable(commits, func(i, j int) bool {
+		return commits[i].Date.Before(commits[j].Date)
+	})
+	return commits, nil
 }
 
 // SaveCommit implements UnitOfWork.

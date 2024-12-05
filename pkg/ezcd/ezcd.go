@@ -29,6 +29,8 @@ type UnitOfWork interface {
 
 	WaitForProjectLock(id string) error
 
+	FindUndeployedCommitsBeforeForUpdate(projectId string, date time.Time) ([]Commit, error)
+
 	FindCommitForUpdate(projectId string, hash string) (*Commit, error)
 	SaveCommit(commit Commit) error
 }
