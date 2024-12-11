@@ -18,7 +18,7 @@ export default function CommitListItem(props: {
       data-commit={props.commit.hash}
     >
       <div class="container flex">
-        <div class="grow">
+        <div class="min-w-0 grow overflow-hidden text-ellipsis whitespace-nowrap">
           &nbsp;&nbsp;
           <span>
             <span
@@ -97,7 +97,7 @@ export default function CommitListItem(props: {
           )<span data-label="commitDate" data-value={props.commit.date}></span>
         </div>
         {props.isCauseOfFailure && (
-          <span class="mr-2 rounded-full bg-red-900 px-3 text-red-400">
+          <span class="mr-2 shrink-0 rounded-full bg-red-900 px-3 text-red-400">
             BREAKING
           </span>
         )}
@@ -105,6 +105,7 @@ export default function CommitListItem(props: {
           data-label="leadTime"
           data-stopped={Boolean(props.commit.leadTimeCompletedAt)}
           class={classNames(
+            "shrink-0",
             props.commit.leadTimeCompletedAt && "text-cyan-500",
           )}
         >
