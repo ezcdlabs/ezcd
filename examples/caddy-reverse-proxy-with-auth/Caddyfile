@@ -1,0 +1,7 @@
+ezcd.localhost:443
+
+basic_auth /* {
+	# user:password created using caddy hash-password
+	user "$2a$14$kbCcVZablzYeFEz2Q3pq5uIyHJTK.Sogfih1YydwDTz5ZmvmvF8Xa"
+}
+reverse_proxy localhost:3923
