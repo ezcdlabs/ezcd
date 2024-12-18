@@ -27,13 +27,12 @@ The EZCD dasboard provides a real-time, transparent view of your pipeline. You c
 
 EZCD tracks the health of your pipeline, and alerts you to failures as soon as they occur. It keeps a notice in place so you can act quickly to unblock your team.
 
-## 2. Improve your pipeline over time
+## 2. Improve your pipeline over time with DORA metrics
 
-By combining immediate actionability with long-term insights, EZCD helps you not only fix problems faster but also continuously improve your processes.
+EZCD helps you continuously improve your processes by tracking the following metrics:
 
-EZCD tracks the lead times of your commits. You can see how long it took before each commit was deployed to production.
-
-EZCD tracks your deployments and shows you how frequently you are delivering changes to your users.
+- **Lead time**: EZCD tracks the lead times of your commits. You can see how long it took before each commit was deployed to production.
+- **Deployment frequency**: EZCD tracks your deployments and shows you how frequently you are delivering changes to your users.
 
 By comparing this over time you can see how changes to your workflow impact the speed and efficiency of your pipeline.
 
@@ -52,7 +51,18 @@ Before you can deploy your changes, they need to run through the two main stages
 
 If you schedule an acceptance run after every successful release candidate you will create an ever-growing backlog of work.
 
-EZCD tracks the successful release candidates and ensures that your acceptance stage jumps ahead to the newest one.
+EZCD tracks the successful release candidates and ensures that your acceptance stage jumps ahead to the newest release candidate. 
+
+<details>
+  <summary>Why isn't this possible natively in GitHub Actions?</summary>
+  <blockquote>
+  GitHub Actions actually comes quite close - closer than GitLab Pipelines.
+
+  You can restrict the parallelism of your acceptance workflow and configure it to queue up a new one after each sucessful commit-stage.
+  But the queuing order is based on when the acceptance workflow was triggered, which can be different to the order in which the commits were created - imagine if your most recent commit completed its commit stage really quickly, then older commits would trigger the acceptance workflow and cancel the workflow for your latest commit: Not good!
+  </blockquote>
+</details>
+
 
 ## 4. Prioritisation of trunk based continuous delivery workflows
 
@@ -98,6 +108,9 @@ postgresql://user:password@your-ezcd-database-server:5432/ezcd
   <summary>GitHub Actions</summary>
 
 ```yaml
+env:
+  PROJECT_ID: your_project_id_here
+
 commit-stage:
   runs-on: ubuntu-latest
   steps:
@@ -109,15 +122,22 @@ commit-stage:
     - name: Commit stage started
       run: ezcd-cli commit-stage-started
 
+    - name: Commit stage started
+      run: ezcd-cli commit-stage-started --project $PROJECT_ID --hash "${{ github.sha }}"
+        --author-name "${{ github.actor }}"
+        --author-email "${{ github.actor }}"
+        --message "${{ github.event.head_commit.message }}"
+        --date "${{ github.event.head_commit.timestamp }}"
+
     - name: Test and build
       run: ./your-test-and-build.sh
 
     - name: Commit stage passed
-      run: ezcd-cli commit-stage-passed
+      run: ezcd-cli commit-stage-passed --project $PROJECT_ID --hash "${{ github.sha }}"
 
     - name: Commit stage failed
       if: !success()
-      run: ezcd-cli commit-stage-failed
+      run: ezcd-cli commit-stage-failed --project $PROJECT_ID --hash "${{ github.sha }}"
 ```
 
 </details>
@@ -127,21 +147,11 @@ commit-stage:
 
 ```sh
 # Install EZCD CLI
-curl -L https://github.com/ezcdlabs/ezcd/releases/download/v0.1.0/ezcd-cli-linux -o /usr/local/bin/ezcd-cli
+version=0.1.0
+url=https://github.com/ezcdlabs/ezcd/releases/download/$version/ezcd_linux_amd64.tar.gz
+curl -L -o ezcdcli.tar.gz $url
+tar -xzf ezcdcli.tar.gz -C /usr/local/bin
 chmod +x /usr/local/bin/ezcd-cli
-
-# Start commit stage
-ezcd-cli commit-stage-started
-
-# Run your tests and build
-./your-test-and-build.sh
-
-# Mark commit stage as passed or failed
-if [ $? -eq 0 ]; then
-  ezcd-cli commit-stage-passed
-else
-  ezcd-cli commit-stage-failed
-fi
 ```
 
 </details>
@@ -152,8 +162,8 @@ fi
 docker run -d \
   --name ezcd-dashboard \
   -e EZCD_DATABASE_URL=postgres://username:password@hostname:port/dbname \
-  -p 8080:8080 \
-  ezcdlabs/ezcd-dashboard:latest
+  -p 3923:3923 \
+  ghcr.io/ezcdlabs/ezcd-server:latest
 ```
 
 <!-- 1. Create a persistent Postgres database that can be accessed from your CI/CD pipeline
