@@ -30,6 +30,7 @@ builds:
 dockers:
   - image_templates:
     - 'ghcr.io/ezcdlabs/ezcd-server:{{ if .IsSnapshot }}snapshot{{ else }}v{{ .Version }}{{ end }}'
+    - 'ghcr.io/ezcdlabs/ezcd-server:{{ if .IsSnapshot }}snapshot{{ else }}latest{{ end }}'
     dockerfile: Dockerfile
     goos: linux
     goarch: amd64
