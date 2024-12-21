@@ -2,6 +2,7 @@ package ezcd
 
 import (
 	"fmt"
+	"sort"
 	"time"
 )
 
@@ -51,6 +52,34 @@ type CommitData struct {
 // GetCommits retrieves the commits for a given project ID.
 func (s *EzcdService) GetCommits(id string) ([]Commit, error) {
 	return s.db.GetCommits(id)
+}
+
+func (s *EzcdService) GetQueuedForAcceptance(projectId string) (*Commit, error) {
+	// dummy implementation where we just get the first commit from the commits
+	commits, err := s.db.GetCommits(projectId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get commits for project %v: %w", projectId, err)
+	}
+
+	// first sort the commits by commit date, newest first
+	sort.SliceStable(commits, func(i, j int) bool {
+		return commits[i].Date.After(commits[j].Date)
+	})
+
+	// loop until we find a commit that has passed the commit stage
+	for _, commit := range commits {
+		if commit.CommitStageStatus == StatusPassed {
+			// check that it hasn't also aleady started the acceptance stage
+			if commit.AcceptanceStageStatus == StatusNone {
+				return &commit, nil
+			}
+
+			// if it has started the acceptance stage, we can stop looking and return nil
+			break
+		}
+	}
+
+	return nil, nil
 }
 
 // CommitStageStarted marks the commit stage as started for a given project and commit data.

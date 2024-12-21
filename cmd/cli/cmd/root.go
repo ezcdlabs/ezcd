@@ -51,6 +51,7 @@ to quickly create a Cobra application.`,
 	rootCmd.AddCommand(NewDeployStartedCommand(serviceLoader))
 	rootCmd.AddCommand(NewDeployPassedCommand(serviceLoader))
 	rootCmd.AddCommand(NewDeployFailedCommand(serviceLoader))
+	rootCmd.AddCommand(NewGetQueuedForAcceptanceCommand(serviceLoader))
 
 	return rootCmd
 }

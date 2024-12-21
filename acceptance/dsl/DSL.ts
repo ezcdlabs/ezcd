@@ -166,6 +166,20 @@ export default class DSL {
         commitHash,
       });
     },
+
+    checkQueuedForAcceptance: async (params: {
+      project: string;
+      commitMessage: string;
+    }) => {
+      const projectId = this.getOrThrow(this.projects, params.project);
+      const commitHash = this.getOrThrow(this.commits, params.commitMessage);
+
+      const actual = await this.cliDriver.getQueuedForAcceptance({
+        projectId,
+      });
+
+      expect(actual).toEqual(commitHash);
+    },
   };
 
   ui = {

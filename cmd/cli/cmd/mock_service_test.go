@@ -29,6 +29,7 @@ type mockEzcdService struct {
 	projectName                 string
 	commitHash                  string
 	commitData                  ezcd.CommitData
+	queuedForAcceptanceHash     string
 	createProjectError          error
 	commitStageStartedError     error
 	commitStagePassedError      error
@@ -39,6 +40,19 @@ type mockEzcdService struct {
 	deployStartedError          error
 	deployPassedError           error
 	deployFailedError           error
+	getQueuedForAcceptanceError error
+}
+
+// GetQueuedForAcceptance implements ezcd.Ezcd.
+func (m *mockEzcdService) GetQueuedForAcceptance(id string) (*ezcd.Commit, error) {
+	m.methodCalled = "GetQueuedForAcceptance"
+	if m.getQueuedForAcceptanceError != nil {
+		return nil, m.getQueuedForAcceptanceError
+	}
+	if m.queuedForAcceptanceHash == "" {
+		return nil, nil
+	}
+	return &ezcd.Commit{Hash: m.queuedForAcceptanceHash}, nil
 }
 
 func (m *mockEzcdService) SetClock(clock ezcd.Clock) {
