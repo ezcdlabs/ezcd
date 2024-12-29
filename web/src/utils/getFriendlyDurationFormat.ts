@@ -13,19 +13,20 @@ export default function getFriendlyDurationFormat(start: Date, end: Date) {
   if (days > 0) {
     output += `${days}d `;
   }
-  if (duration?.hours) {
+  if (duration?.hours || output) {
     output += `${(duration.hours ?? 0)
       .toString()
-      .padStart(duration.days ? 2 : 1, "0")}h `;
+      .padStart(output ? 2 : 1, "0")}h `;
   }
 
-  if (duration?.minutes) {
+  if (duration?.minutes || output) {
     output += `${(duration.minutes ?? 0)
       .toString()
-      .padStart(duration.hours ? 2 : 1, "0")}m `;
+      .padStart(output ? 2 : 1, "0")}m `;
   }
+
   output += `${(duration.seconds ?? 0)
     .toString()
-    .padStart(duration.minutes ? 2 : 1, "0")}s`;
+    .padStart(output ? 2 : 1, "0")}s`;
   return output;
 }
