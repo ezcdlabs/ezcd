@@ -6,6 +6,8 @@ import groupCommits from "./groupCommits";
 import classNames from "../utils/classNames";
 import logo from "../logo.svg";
 import { createQuery } from "@tanstack/solid-query";
+import getMedianLeadTime from "../utils/getMedianLeadTime";
+import getShortDurationFormatFromSeconds from "../utils/getShortDurationFormatFromSeconds";
 
 interface Project {
   // Define the structure of a project here
@@ -139,7 +141,24 @@ function Commits(props: { projectId: string }) {
           </Show>
 
           {groupedCommits().map((section) => (
-            <Section name={section.name} status={section.status}>
+            <Section
+              name={section.name}
+              status={section.status}
+              medianLeadTime={
+                !section.status
+                  ? (getMedianLeadTime(
+                      section.groups.flatMap((x) => x.commits),
+                    ) ?? 0)
+                  : undefined
+              }
+              deploys={
+                !section.status
+                  ? section.groups
+                      .flatMap((x) => x.commits)
+                      .filter((x) => x.deployStatus === "passed").length
+                  : undefined
+              }
+            >
               <For each={section.groups}>
                 {(group) => (
                   <Group name={group.name}>
@@ -173,6 +192,8 @@ function Commits(props: { projectId: string }) {
 function Section(props: {
   children: JSX.Element;
   status?: string;
+  medianLeadTime?: number;
+  deploys?: number;
   name: string;
 }) {
   return (
@@ -201,6 +222,23 @@ function Section(props: {
               <>
                 &nbsp;&nbsp;
                 <span class="text-xs uppercase opacity-50">{props.status}</span>
+              </>
+            )}
+            {props.deploys !== undefined && (
+              <>
+                &nbsp;&nbsp;
+                <span class="text-xs text-cornflower-blue-500 opacity-50">
+                  {props.deploys} deploys
+                </span>
+              </>
+            )}
+            {props.medianLeadTime !== undefined && (
+              <>
+                &nbsp;&nbsp;
+                <span class="text-xs text-cyan-500 opacity-50">
+                  {getShortDurationFormatFromSeconds(props.medianLeadTime)}{" "}
+                  median lead time
+                </span>
               </>
             )}
           </div>
