@@ -1,13 +1,11 @@
 import { useParams } from "@solidjs/router";
-import { createMemo, createResource, For, JSX, Show, Suspense } from "solid-js";
-import { Commit, pipelineSection } from "./types";
-import CommitListItem from "./CommitListItem";
-import groupCommits from "./groupCommits";
+import { For, JSX, Show, Suspense } from "solid-js";
+import CommitListItem from "./components/CommitListItem";
 import classNames from "../utils/classNames";
 import logo from "../logo.svg";
-import { createQuery } from "@tanstack/solid-query";
 import getMedianLeadTime from "../utils/getMedianLeadTime";
 import getShortDurationFormatFromSeconds from "../utils/getShortDurationFormatFromSeconds";
+import DataLoader, { useData } from "./components/DataLoader";
 
 interface Project {
   // Define the structure of a project here
@@ -15,35 +13,54 @@ interface Project {
   name: string;
 }
 
-interface CommitGroup {
-  name: string;
-  commits: Commit[];
+export default function Project() {
+  return (
+    <DataLoader>
+      <Suspense>
+        <ProjectHeader />
+        <ProjectBody />
+      </Suspense>
+    </DataLoader>
+  );
 }
 
-const fetchProject = async (id: string): Promise<Project> => {
-  const response = await fetch(`/api/projects/${id}`);
-  return response.json();
-};
+function ProjectHeader() {
+  const projectId = useParams().projectId;
 
-const fetchCommits = async (projectId: string): Promise<Commit[]> => {
-  const response = await fetch(`/api/projects/${projectId}/commits`);
-  const commits = (await response.json()) as Commit[];
-  return commits.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  return (
+    <div class="fixed inset-x-0 top-0 z-20 flex h-11 shrink-0 items-center bg-neutral-900/75 backdrop-blur-sm">
+      <div class="container flex items-center gap-4">
+        <a href="/" class="group flex items-center">
+          <svg
+            class="h-5 w-5 fill-neutral-300 group-hover:fill-neutral-100"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            data-testid="ArrowBackIcon"
+            aria-label="fontSize small"
+          >
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"></path>
+          </svg>
+          <div class="h-8 w-8 rounded-full border-2 border-neutral-300 bg-neutral-800 hover:border-neutral-100">
+            <img src={logo} alt="EZCD Logo" class="h-full w-full" />
+          </div>
+        </a>
+
+        <h1 data-label="projectName" class="font-semibold">
+          {projectId}
+        </h1>
+      </div>
+    </div>
   );
-};
+}
 
-export default function Project() {
+function ProjectBody() {
   const params = useParams();
-  const projectQuery = createQuery(() => ({
-    queryKey: ["project", params.projectId],
-    queryFn: () => fetchProject(params.projectId),
-  }));
+  const data = useData();
 
   return (
     <Suspense>
       <Show
-        when={projectQuery.data?.name}
+        when={data.project()?.name}
         fallback={<div>Project not found.</div>}
       >
         <main class="flex h-screen flex-col pt-11">
@@ -65,7 +82,7 @@ export default function Project() {
               </a>
 
               <h1 data-label="projectName" class="font-semibold">
-                {projectQuery.data?.name}
+                {data.project()?.name}
               </h1>
             </div>
           </div>
@@ -80,26 +97,12 @@ export default function Project() {
 }
 
 function Commits(props: { projectId: string }) {
-  const commitsQuery = createQuery(() => ({
-    queryKey: ["commits", props.projectId],
-    queryFn: () => fetchCommits(props.projectId),
-    refetchInterval: 5000,
-  }));
-
-  const groupedCommits = createMemo(() =>
-    groupCommits(commitsQuery.data ?? []),
-  );
-
-  const failures = createMemo(() => {
-    return groupedCommits()
-      .filter((section) => section.status === "failing")
-      .map((x) => x.name);
-  });
+  const { groupedCommits, failures, project } = useData();
 
   return (
     <Suspense>
       <Show
-        when={commitsQuery.isSuccess && commitsQuery.data?.length !== 0}
+        when={groupedCommits()?.length !== 0}
         fallback={
           <div class="flex grow items-center justify-center">
             <div class="container">

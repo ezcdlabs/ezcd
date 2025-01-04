@@ -1,6 +1,6 @@
-import classNames from "../utils/classNames";
+import classNames from "../../utils/classNames";
 import { createPolled } from "@solid-primitives/timer";
-import getFriendlyDurationFormat from "../utils/getFriendlyDurationFormat";
+import getFriendlyDurationFormat from "../../utils/getFriendlyDurationFormat";
 
 const now = createPolled(() => new Date(), 500);
 

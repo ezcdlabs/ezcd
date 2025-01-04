@@ -1,6 +1,6 @@
-import classNames from "../utils/classNames";
+import classNames from "../../utils/classNames";
 import TimerDisplay from "./TimerDisplay";
-import { Commit, status } from "./types";
+import { Commit, status } from "../types";
 import * as dateFns from "date-fns";
 
 export default function CommitListItem(props: {
