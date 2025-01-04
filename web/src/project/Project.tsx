@@ -97,12 +97,12 @@ function ProjectBody() {
 }
 
 function Commits(props: { projectId: string }) {
-  const { groupedCommits, failures, project } = useData();
+  const { isSuccess, groupedCommits, failures, project } = useData();
 
   return (
     <Suspense>
       <Show
-        when={groupedCommits()?.length !== 0}
+        when={isSuccess() && groupedCommits()?.length !== 0}
         fallback={
           <div class="flex grow items-center justify-center">
             <div class="container">

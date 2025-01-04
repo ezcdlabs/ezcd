@@ -27,6 +27,7 @@ interface ProjectData {
   project: () => Project | undefined;
   groupedCommits: () => ReturnType<typeof groupCommits<Commit>>;
   failures: () => string[];
+  isSuccess: () => boolean;
 }
 
 const ProjectDataContext = createContext<ProjectData | undefined>();
@@ -59,6 +60,7 @@ export default function DataLoader(props: { children: JSX.Element }) {
     <ProjectDataContext.Provider
       value={{
         project: () => projectQuery.data,
+        isSuccess: () => commitsQuery.isSuccess,
         groupedCommits,
         failures,
       }}
