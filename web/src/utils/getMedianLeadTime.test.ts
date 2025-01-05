@@ -1,5 +1,7 @@
 import { describe, expect, test } from "vitest";
-import getMedianLeadTime, { CommitForLeadTime } from "../v2/getMedianLeadTime";
+import getMedianLeadTime, {
+  CommitForLeadTime,
+} from "../utils/getMedianLeadTime";
 
 function makeCommit(commit: Partial<CommitForLeadTime>): CommitForLeadTime {
   return {
@@ -10,11 +12,7 @@ function makeCommit(commit: Partial<CommitForLeadTime>): CommitForLeadTime {
 
 test("should return empty metrics for empty commits", () => {
   const actual = getMedianLeadTime([]);
-  expect(actual).toEqual({
-    medianLeadTime: null,
-    deploysPerDay: null,
-    pipelineHealthPercentage: null,
-  });
+  expect(actual).toEqual(null);
 });
 
 test("should return lead time of the only commit", () => {
