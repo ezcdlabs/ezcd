@@ -9,3 +9,6 @@ pre-commit:
       run: go vet ./...
     "go-test":
       run: go test ./...
+    "vite-test":
+      root: ./web
+      run: pnpm run test
