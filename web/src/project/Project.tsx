@@ -109,17 +109,6 @@ function Commits(props: { projectId: string }) {
               <p>
                 There doesn't appear to be any commits yet for this project.
               </p>
-              <p>
-                Install the ezcd-cli into your CI/CD pipeline, and add the
-                following command:
-              </p>
-              <code class="mt-4 block whitespace-pre-wrap rounded-md bg-neutral-900 p-3 font-mono">
-                ezcd-cli commit-stage-started --project {props.projectId} --hash
-                $(git log -1 --format=%H) --author-name "$(git log -1
-                --format=%an)" --author-email "$(git log -1 --format=%ae)"
-                --message "$(git log -1 --pretty=%B)" --date "$(git log -1
-                --date=iso-strict --pretty=%cd)"
-              </code>
             </div>
           </div>
         }
